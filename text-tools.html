@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Text Counter & Case — ToolNova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div></div>
+<div class="tool-page">
+  <nav class="topbar">
+    <a class="topbar-logo" href="index.html"><span>✦</span> ToolNova</a>
+    <span class="topbar-sep">/</span>
+    <span class="topbar-tool">Text Counter & Case</span>
+    <a class="topbar-back" href="index.html">← All Tools</a>
+  </nav>
+  <div class="tool-content">
+    <div class="tool-hero">
+      <div class="tool-hero-icon">✏️</div>
+      <div><div class="tool-hero-title">Text Counter & Case Converter</div><div class="tool-hero-desc">Count characters, words, lines and convert case</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Your Text</div>
+      <div class="fg">
+        <textarea id="textIn" rows="8" placeholder="Type or paste your text here…" oninput="update()"></textarea>
+      </div>
+      <div class="stats" id="stats">
+        <div class="stat"><div class="stat-val" id="sChars">0</div><div class="stat-key">Characters</div></div>
+        <div class="stat"><div class="stat-val" id="sNoSp">0</div><div class="stat-key">No spaces</div></div>
+        <div class="stat"><div class="stat-val" id="sWords">0</div><div class="stat-key">Words</div></div>
+        <div class="stat"><div class="stat-val" id="sSents">0</div><div class="stat-key">Sentences</div></div>
+        <div class="stat"><div class="stat-val" id="sLines">0</div><div class="stat-key">Lines</div></div>
+        <div class="stat"><div class="stat-val" id="sRead">0</div><div class="stat-key">Read time</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Convert Case</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px">
+        <button class="btn btn-s" onclick="convert('upper')">UPPERCASE</button>
+        <button class="btn btn-s" onclick="convert('lower')">lowercase</button>
+        <button class="btn btn-s" onclick="convert('title')">Title Case</button>
+        <button class="btn btn-s" onclick="convert('sentence')">Sentence case</button>
+        <button class="btn btn-s" onclick="convert('camel')">camelCase</button>
+        <button class="btn btn-s" onclick="convert('pascal')">PascalCase</button>
+        <button class="btn btn-s" onclick="convert('snake')">snake_case</button>
+        <button class="btn btn-s" onclick="convert('kebab')">kebab-case</button>
+        <button class="btn btn-s" onclick="convert('const')">CONST_CASE</button>
+        <button class="btn btn-s" onclick="convert('dot')">dot.case</button>
+        <button class="btn btn-s" onclick="convert('alt')">aLtErNaTiNg</button>
+        <button class="btn btn-s" onclick="convert('reverse')">esreveR</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Clean & Transform</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px">
+        <button class="btn btn-s" onclick="trim()">Trim whitespace</button>
+        <button class="btn btn-s" onclick="removeExtra()">Remove extra spaces</button>
+        <button class="btn btn-s" onclick="removeLines()">Remove blank lines</button>
+        <button class="btn btn-s" onclick="sortLines()">Sort lines A→Z</button>
+        <button class="btn btn-s" onclick="sortLinesDesc()">Sort lines Z→A</button>
+        <button class="btn btn-s" onclick="uniqueLines()">Remove duplicates</button>
+        <button class="btn btn-s" onclick="reverseLines()">Reverse lines</button>
+        <button class="btn btn-s" onclick="addNumbers()">Add line numbers</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="btns">
+        <button class="copy-btn" onclick="copyText()">📋 Copy text</button>
+        <button class="btn btn-s btn-xs" onclick="clearAll()">Clear</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+function get(){return document.getElementById('textIn').value;}
+function set(v){document.getElementById('textIn').value=v;update();}
+
+function update(){
+  const t=get();
+  document.getElementById('sChars').textContent=t.length;
+  document.getElementById('sNoSp').textContent=t.replace(/\s/g,'').length;
+  document.getElementById('sWords').textContent=t.trim()?t.trim().split(/\s+/).length:0;
+  document.getElementById('sSents').textContent=t.split(/[.!?]+/).filter(s=>s.trim()).length;
+  document.getElementById('sLines').textContent=t?t.split('\n').length:0;
+  const wpm=200,words=t.trim()?t.trim().split(/\s+/).length:0;
+  const mins=words/wpm;
+  document.getElementById('sRead').textContent=mins<1?`${Math.ceil(mins*60)}s`:`${Math.ceil(mins)}m`;
+}
+
+function convert(type){
+  let t=get();
+  if(!t){toast('Enter some text first');return;}
+  if(type==='upper')t=t.toUpperCase();
+  else if(type==='lower')t=t.toLowerCase();
+  else if(type==='title')t=t.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
+  else if(type==='sentence')t=t.toLowerCase().replace(/(^\s*\w|[.!?]\s*\w)/g,c=>c.toUpperCase());
+  else if(type==='camel')t=t.toLowerCase().replace(/[\s_\-]+(\w)/g,(_,c)=>c.toUpperCase());
+  else if(type==='pascal'){t=t.toLowerCase().replace(/[\s_\-]+(\w)/g,(_,c)=>c.toUpperCase());t=t.charAt(0).toUpperCase()+t.slice(1);}
+  else if(type==='snake')t=t.trim().toLowerCase().replace(/[\s\-]+/g,'_');
+  else if(type==='kebab')t=t.trim().toLowerCase().replace(/[\s_]+/g,'-');
+  else if(type==='const')t=t.trim().toUpperCase().replace(/[\s\-]+/g,'_');
+  else if(type==='dot')t=t.trim().toLowerCase().replace(/[\s_\-]+/g,'.');
+  else if(type==='alt')t=t.split('').map((c,i)=>i%2===0?c.toLowerCase():c.toUpperCase()).join('');
+  else if(type==='reverse')t=t.split('').reverse().join('');
+  set(t);
+}
+
+function trim(){set(get().trim());}
+function removeExtra(){set(get().replace(/[ \t]+/g,' ').replace(/\n\s+/g,'\n'));}
+function removeLines(){set(get().split('\n').filter(l=>l.trim()).join('\n'));}
+function sortLines(){set(get().split('\n').sort((a,b)=>a.localeCompare(b)).join('\n'));}
+function sortLinesDesc(){set(get().split('\n').sort((a,b)=>b.localeCompare(a)).join('\n'));}
+function uniqueLines(){set([...new Set(get().split('\n'))].join('\n'));}
+function reverseLines(){set(get().split('\n').reverse().join('\n'));}
+function addNumbers(){set(get().split('\n').map((l,i)=>`${i+1}. ${l}`).join('\n'));}
+function copyText(){navigator.clipboard.writeText(get()).then(()=>toast('Copied!'));}
+function clearAll(){set('');document.getElementById('textIn').focus();}
+</script>
+</body>
+</html>

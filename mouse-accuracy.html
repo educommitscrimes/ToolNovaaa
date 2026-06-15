@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Mouse Accuracy Test — ToolNova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+.arena {
+  width:100%;height:320px;
+  background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;
+  position:relative;overflow:hidden;cursor:crosshair;
+  display:flex;align-items:center;justify-content:center;
+}
+.arena-msg{color:var(--muted);font-size:.9rem;text-align:center;pointer-events:none}
+.target {
+  position:absolute;border-radius:50%;
+  background:radial-gradient(circle, rgba(139,92,246,.8) 0%, rgba(139,92,246,.3) 60%, transparent 100%);
+  border:2px solid var(--purple);
+  transform:translate(-50%,-50%);
+  display:none;
+  box-shadow:0 0 20px rgba(139,92,246,.4);
+  transition:width .1s,height .1s;
+}
+.miss-flash{position:absolute;inset:0;background:rgba(239,68,68,.15);pointer-events:none;opacity:0;transition:opacity .15s;border-radius:14px}
+.hit-flash{position:absolute;inset:0;background:rgba(52,211,153,.1);pointer-events:none;opacity:0;transition:opacity .15s;border-radius:14px}
+.diff-btn{padding:7px 16px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:.82rem;transition:.2s}
+.diff-btn.on{background:rgba(139,92,246,.2);border-color:var(--border-h);color:#c4b5fd}
+</style>
+</head>
+<body>
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div></div>
+<div class="tool-page">
+  <nav class="topbar">
+    <a class="topbar-logo" href="index.html"><span>✦</span> ToolNova</a>
+    <span class="topbar-sep">/</span>
+    <span class="topbar-tool">Mouse Accuracy Test</span>
+    <a class="topbar-back" href="index.html">← All Tools</a>
+  </nav>
+  <div class="tool-content">
+    <div class="tool-hero">
+      <div class="tool-hero-icon">🎯</div>
+      <div><div class="tool-hero-title">Mouse Accuracy Test</div><div class="tool-hero-desc">Click the targets as accurately and quickly as you can</div></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+        <div style="display:flex;gap:6px">
+          <button class="diff-btn on" data-d="easy" onclick="setDiff('easy',this)">Easy</button>
+          <button class="diff-btn" data-d="medium" onclick="setDiff('medium',this)">Medium</button>
+          <button class="diff-btn" data-d="hard" onclick="setDiff('hard',this)">Hard</button>
+          <button class="diff-btn" data-d="extreme" onclick="setDiff('extreme',this)">Extreme</button>
+        </div>
+        <div style="color:var(--muted);font-size:.82rem">Targets: <input type="number" id="totalTargets" value="20" min="5" max="50" style="width:55px;background:transparent;border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:6px;font-size:.82rem"/></div>
+      </div>
+
+      <div class="stats" style="margin-bottom:14px">
+        <div class="stat"><div class="stat-val" id="sHits">0</div><div class="stat-key">Hits</div></div>
+        <div class="stat"><div class="stat-val" id="sMiss">0</div><div class="stat-key">Misses</div></div>
+        <div class="stat"><div class="stat-val" id="sAcc">—</div><div class="stat-key">Accuracy</div></div>
+        <div class="stat"><div class="stat-val" id="sLeft">—</div><div class="stat-key">Remaining</div></div>
+        <div class="stat"><div class="stat-val" id="sAvgT">—</div><div class="stat-key">Avg time (ms)</div></div>
+      </div>
+
+      <div class="arena" id="arena" onclick="handleArena(event)">
+        <div class="miss-flash" id="missFlash"></div>
+        <div class="hit-flash" id="hitFlash"></div>
+        <div class="arena-msg" id="arenaMsg">Click anywhere to start</div>
+        <div class="target" id="target"></div>
+      </div>
+
+      <div class="btns" style="margin-top:12px">
+        <button class="btn btn-s" onclick="resetGame()">Reset</button>
+      </div>
+    </div>
+
+    <div class="card" id="resultCard" style="display:none">
+      <div class="card-title">Result</div>
+      <div id="resultBody"></div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+let running=false,hits=0,misses=0,remaining=0,total=20;
+let diff={minSize:50,maxSize:80,moveInterval:0};
+let targetTimer=null,moveTimer=null,targetStart=0;
+let times=[];
+
+const DIFFS={
+  easy:     {minSize:60,maxSize:90,moveInterval:0},
+  medium:   {minSize:40,maxSize:65,moveInterval:0},
+  hard:     {minSize:24,maxSize:44,moveInterval:1800},
+  extreme:  {minSize:16,maxSize:30,moveInterval:900},
+};
+
+function setDiff(d,btn){
+  document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  diff=DIFFS[d];
+  if(running)placeTarget();
+}
+
+function handleArena(e){
+  if(!running){startGame();return;}
+  const target=document.getElementById('target');
+  if(target.style.display==='none')return;
+  const rect=target.getBoundingClientRect();
+  const cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
+  const dist=Math.hypot(e.clientX-cx,e.clientY-cy);
+  const isHit=dist<=rect.width/2;
+
+  if(isHit){
+    hits++;
+    times.push(Date.now()-targetStart);
+    flash('hit');
+  } else {
+    misses++;
+    flash('miss');
+  }
+  remaining--;
+  updateStats();
+  if(remaining<=0){endGame();return;}
+  placeTarget();
+}
+
+function flash(type){
+  const el=document.getElementById(type==='hit'?'hitFlash':'missFlash');
+  el.style.opacity='1';
+  setTimeout(()=>el.style.opacity='0',120);
+}
+
+function startGame(){
+  total=Math.max(5,Math.min(50,parseInt(document.getElementById('totalTargets').value)||20));
+  hits=0;misses=0;remaining=total;times=[];running=true;
+  document.getElementById('arenaMsg').style.display='none';
+  document.getElementById('resultCard').style.display='none';
+  updateStats();
+  placeTarget();
+}
+
+function placeTarget(){
+  const target=document.getElementById('target');
+  const arena=document.getElementById('arena');
+  const ar=arena.getBoundingClientRect();
+  const size=diff.minSize+Math.random()*(diff.maxSize-diff.minSize);
+  target.style.width=size+'px';target.style.height=size+'px';
+  const x=size/2+Math.random()*(ar.width-size);
+  const y=size/2+Math.random()*(ar.height-size);
+  target.style.left=x+'px';target.style.top=y+'px';
+  target.style.display='block';
+  targetStart=Date.now();
+
+  clearInterval(moveTimer);
+  if(diff.moveInterval>0){
+    moveTimer=setInterval(()=>{
+      const nx=size/2+Math.random()*(ar.width-size);
+      const ny=size/2+Math.random()*(ar.height-size);
+      target.style.left=nx+'px';target.style.top=ny+'px';
+    },diff.moveInterval);
+  }
+}
+
+function updateStats(){
+  document.getElementById('sHits').textContent=hits;
+  document.getElementById('sMiss').textContent=misses;
+  const total2=hits+misses;
+  document.getElementById('sAcc').textContent=total2?Math.round(hits/total2*100)+'%':'—';
+  document.getElementById('sLeft').textContent=remaining;
+  const avg=times.length?Math.round(times.reduce((a,b)=>a+b,0)/times.length):'—';
+  document.getElementById('sAvgT').textContent=avg;
+}
+
+function endGame(){
+  clearInterval(moveTimer);running=false;
+  document.getElementById('target').style.display='none';
+  document.getElementById('arenaMsg').style.display='block';
+  document.getElementById('arenaMsg').textContent='Click to play again';
+  const tot=hits+misses;
+  const acc=tot?Math.round(hits/tot*100):0;
+  const avg=times.length?Math.round(times.reduce((a,b)=>a+b,0)/times.length):0;
+  const grade=acc>=95?'🏆 Perfect!':acc>=85?'🥇 Excellent!':acc>=70?'⭐ Good!':acc>=50?'👍 Fair':'📈 Keep practicing!';
+  document.getElementById('resultCard').style.display='block';
+  document.getElementById('resultBody').innerHTML=`
+    <div style="text-align:center;padding:16px">
+      <div style="font-size:1.5rem;margin-bottom:16px">${grade}</div>
+      <div class="stats" style="justify-content:center;margin-bottom:20px">
+        <div class="stat"><div class="stat-val">${acc}%</div><div class="stat-key">Accuracy</div></div>
+        <div class="stat"><div class="stat-val">${hits}</div><div class="stat-key">Hits</div></div>
+        <div class="stat"><div class="stat-val">${misses}</div><div class="stat-key">Misses</div></div>
+        <div class="stat"><div class="stat-val">${avg}ms</div><div class="stat-key">Avg speed</div></div>
+      </div>
+      <button class="btn btn-p" onclick="resetGame()">Play again</button>
+    </div>`;
+}
+
+function resetGame(){
+  clearInterval(moveTimer);running=false;hits=0;misses=0;remaining=0;times=[];
+  document.getElementById('target').style.display='none';
+  document.getElementById('arenaMsg').style.display='block';
+  document.getElementById('arenaMsg').textContent='Click anywhere to start';
+  document.getElementById('resultCard').style.display='none';
+  updateStats();
+  document.getElementById('sLeft').textContent='—';
+}
+</script>
+</body>
+</html>

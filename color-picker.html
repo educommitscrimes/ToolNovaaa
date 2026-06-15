@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Color Picker & Palette — ToolNova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+.swatch{width:52px;height:52px;border-radius:10px;cursor:pointer;border:2px solid transparent;transition:.2s;flex-shrink:0}
+.swatch:hover{transform:scale(1.1);border-color:rgba(255,255,255,.4);}
+.color-preview{width:100%;height:90px;border-radius:12px;border:1px solid var(--border);transition:background .15s}
+.val-box{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-family:var(--mono);font-size:.83rem;color:#c4b5fd;cursor:pointer;flex:1;text-align:center;transition:.15s}
+.val-box:hover{border-color:var(--border-h);background:rgba(139,92,246,.08)}
+</style>
+</head>
+<body>
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div></div>
+<div class="tool-page">
+  <nav class="topbar">
+    <a class="topbar-logo" href="index.html"><span>✦</span> ToolNova</a>
+    <span class="topbar-sep">/</span>
+    <span class="topbar-tool">Color Picker & Palette</span>
+    <a class="topbar-back" href="index.html">← All Tools</a>
+  </nav>
+  <div class="tool-content">
+    <div class="tool-hero">
+      <div class="tool-hero-icon">🎨</div>
+      <div><div class="tool-hero-title">Color Picker & Palette</div><div class="tool-hero-desc">Pick colors, get values and generate palettes</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Pick a Color</div>
+      <div class="row" style="align-items:flex-end;margin-bottom:16px">
+        <div class="fg" style="flex:0 0 auto">
+          <label class="lbl">Color picker</label>
+          <input type="color" id="picker" value="#8b5cf6" oninput="onPick(this.value)"/>
+        </div>
+        <div class="fg">
+          <label class="lbl">Hex value</label>
+          <input type="text" id="hexIn" value="#8b5cf6" placeholder="#8b5cf6" oninput="onHex(this.value)"/>
+        </div>
+      </div>
+      <div class="color-preview" id="preview"></div>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap" id="valBoxes"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Generated Palette</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px" id="palette"></div>
+      <div class="btns">
+        <button class="btn btn-s btn-xs" onclick="genPalette('shades')">Shades</button>
+        <button class="btn btn-s btn-xs" onclick="genPalette('tints')">Tints</button>
+        <button class="btn btn-s btn-xs" onclick="genPalette('analogous')">Analogous</button>
+        <button class="btn btn-s btn-xs" onclick="genPalette('complementary')">Complementary</button>
+        <button class="btn btn-s btn-xs" onclick="genPalette('triadic')">Triadic</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Quick Colors</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px" id="quickColors"></div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800);}
+function copy(v){navigator.clipboard.writeText(v).then(()=>toast('Copied: '+v));}
+
+function hexToRgb(h){h=h.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');const n=parseInt(h,16);return{r:(n>>16)&255,g:(n>>8)&255,b:n&255};}
+function rgbToHex(r,g,b){return'#'+[r,g,b].map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('');}
+function rgbToHsl(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b);let h,s,l=(mx+mn)/2;if(mx===mn){h=s=0;}else{const d=mx-mn;s=l>.5?d/(2-mx-mn):d/(mx+mn);h=(mx===r?(g-b)/d+(g<b?6:0):mx===g?(b-r)/d+2:(r-g)/d+4)/6;}return{h:Math.round(h*360),s:Math.round(s*100),l:Math.round(l*100)};}
+function hslToRgb(h,s,l){s/=100;l/=100;const a=s*Math.min(l,1-l);const f=n=>{const k=(n+h/30)%12;return l-a*Math.max(Math.min(k-3,9-k,1),-1);};return{r:Math.round(f(0)*255),g:Math.round(f(8)*255),b:Math.round(f(4)*255)};}
+function hslToHex(h,s,l){const{r,g,b}=hslToRgb(h,s,l);return rgbToHex(r,g,b);}
+function rgbToCmyk(r,g,b){r/=255;g/=255;b/=255;const k=1-Math.max(r,g,b);if(k===1)return{c:0,m:0,y:0,k:100};return{c:Math.round((1-r-k)/(1-k)*100),m:Math.round((1-g-k)/(1-k)*100),y:Math.round((1-b-k)/(1-k)*100),k:Math.round(k*100)};}
+
+function update(hex){
+  hex=hex.toLowerCase();
+  document.getElementById('picker').value=hex;
+  document.getElementById('hexIn').value=hex;
+  document.getElementById('preview').style.background=hex;
+  const{r,g,b}=hexToRgb(hex);
+  const{h,s,l}=rgbToHsl(r,g,b);
+  const{c,m,y,k}=rgbToCmyk(r,g,b);
+  document.getElementById('valBoxes').innerHTML=[
+    [hex,'HEX'],
+    [`rgb(${r},${g},${b})`,'RGB'],
+    [`hsl(${h},${s}%,${l}%)`,'HSL'],
+    [`cmyk(${c}%,${m}%,${y}%,${k}%)`,'CMYK'],
+  ].map(([v,lbl])=>`<div class="val-box" onclick="copy('${v}')" title="Click to copy"><div style="color:var(--muted);font-size:.7rem;margin-bottom:3px">${lbl}</div>${v}</div>`).join('');
+  genPalette('shades');
+}
+
+function onPick(v){update(v);}
+function onHex(v){if(/^#[0-9a-f]{6}$/i.test(v))update(v);}
+
+function genPalette(type){
+  const hex=document.getElementById('hexIn').value;
+  if(!/^#[0-9a-f]{6}$/i.test(hex))return;
+  const{r,g,b}=hexToRgb(hex);
+  const{h,s,l}=rgbToHsl(r,g,b);
+  let colors=[];
+  if(type==='shades'){colors=Array.from({length:10},(_,i)=>hslToHex(h,s,Math.max(5,l-40+i*9)));}
+  else if(type==='tints'){colors=Array.from({length:10},(_,i)=>hslToHex(h,Math.max(0,s-i*8),Math.min(95,l+i*5)));}
+  else if(type==='analogous'){colors=[-60,-30,0,30,60].map(d=>hslToHex((h+d+360)%360,s,l));}
+  else if(type==='complementary'){colors=[0,30,60,180,210,240].map(d=>hslToHex((h+d+360)%360,s,l));}
+  else if(type==='triadic'){colors=[0,30,120,150,240,270].map(d=>hslToHex((h+d+360)%360,s,l));}
+  document.getElementById('palette').innerHTML=colors.map(c=>`<div class="swatch" style="background:${c}" title="${c}" onclick="copy('${c}');update('${c}')"></div>`).join('');
+}
+
+const QUICK=['#ef4444','#f97316','#eab308','#22c55e','#14b8a6','#3b82f6','#8b5cf6','#ec4899','#ffffff','#94a3b8','#334155','#0f172a'];
+document.getElementById('quickColors').innerHTML=QUICK.map(c=>`<div class="swatch" style="background:${c};${c==='#ffffff'?'border:1px solid var(--border)':''}" title="${c}" onclick="update('${c}')"></div>`).join('');
+
+update('#8b5cf6');
+</script>
+</body>
+</html>

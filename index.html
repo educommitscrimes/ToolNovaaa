@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>ToolNova — Everything you need. One website.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0b0b0f; --bg2: #111118;
+      --purple: #8b5cf6; --purple-d: #6d3fe0;
+      --glow: rgba(139,92,246,0.35); --soft: rgba(139,92,246,0.15);
+      --text: #f0f0f8; --muted: #8888aa;
+      --border: rgba(255,255,255,0.07); --border-h: rgba(139,92,246,0.5);
+      --r: 14px; --rs: 8px; --t: 0.22s cubic-bezier(.4,0,.2,1);
+      --font: 'Inter',sans-serif; --display: 'Space Grotesk',sans-serif;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--purple-d); border-radius: 99px; }
+
+    /* ── LANDING ── */
+    #landing {
+      position: fixed; inset: 0; z-index: 10;
+      display: flex; flex-direction: column;
+      background: var(--bg);
+      transition: opacity .55s ease, transform .55s ease;
+    }
+    #landing.exit { opacity: 0; transform: translateY(-28px); pointer-events: none; }
+    #landing.gone { display: none; }
+
+    /* bg */
+    .orbs { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(85px); opacity: .45; animation: orb 9s ease-in-out infinite; }
+    .o1 { width:500px;height:500px;background:radial-gradient(circle,#7c3aed,transparent 70%);top:-180px;left:-120px; }
+    .o2 { width:380px;height:380px;background:radial-gradient(circle,#a855f7,transparent 70%);bottom:-90px;right:-90px;animation-delay:-3.5s; }
+    .o3 { width:280px;height:280px;background:radial-gradient(circle,#6d28d9,transparent 70%);top:55%;left:50%;transform:translate(-50%,-50%);animation-delay:-7s; }
+    @keyframes orb { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(22px,-18px) scale(1.04)} }
+    .o3 { animation-name: orb3; }
+    @keyframes orb3 { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(calc(-50% + 20px),calc(-50% - 15px)) scale(1.04)} }
+
+    .grid-over {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image: linear-gradient(rgba(139,92,246,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(139,92,246,.05) 1px,transparent 1px);
+      background-size: 50px 50px;
+    }
+
+    /* nav */
+    .l-nav {
+      position: relative; z-index: 2;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 22px 40px;
+    }
+    .logo { display:flex;align-items:center;gap:9px;font-family:var(--display);font-size:1.25rem;font-weight:700; }
+    .logo-star { color:var(--purple); }
+    .l-nav-btn {
+      background: transparent; border: 1.5px solid var(--border-h); color: var(--purple);
+      padding: 8px 20px; border-radius: 99px; font-size:.85rem; font-weight:500; cursor:pointer; transition:var(--t);
+    }
+    .l-nav-btn:hover { background:var(--soft); box-shadow:0 0 16px var(--glow); }
+
+    /* hero */
+    .hero {
+      position: relative; z-index: 2; flex: 1;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 0 20px 60px;
+    }
+    .badge {
+      display:inline-flex;align-items:center;gap:8px;
+      background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.3);
+      color:#c4b5fd;padding:6px 16px;border-radius:99px;font-size:.78rem;font-weight:500;
+      margin-bottom:26px;letter-spacing:.03em;
+    }
+    .dot { width:6px;height:6px;border-radius:50%;background:var(--purple);box-shadow:0 0 8px var(--purple);animation:pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    .hero-title {
+      font-family:var(--display);font-size:clamp(4rem,11vw,7.5rem);font-weight:700;
+      line-height:.95;letter-spacing:-.03em;
+      background:linear-gradient(135deg,#fff 0%,#c4b5fd 50%,#8b5cf6 100%);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+      margin-bottom:14px;
+    }
+    .hero-sub { font-family:var(--display);font-size:clamp(1.1rem,2.8vw,1.7rem);font-weight:500;color:var(--muted);margin-bottom:22px; }
+    .hero-desc { max-width:520px;color:#66669a;font-size:.93rem;line-height:1.7;margin-bottom:38px; }
+
+    .cta {
+      display:inline-flex;align-items:center;gap:10px;
+      background:linear-gradient(135deg,var(--purple-d),var(--purple));
+      color:#fff;padding:15px 34px;border-radius:99px;
+      font-family:var(--display);font-size:.97rem;font-weight:600;
+      border:none;cursor:pointer;transition:var(--t);
+      box-shadow:0 4px 28px rgba(139,92,246,.4);margin-bottom:42px;
+    }
+    .cta:hover { transform:translateY(-2px);box-shadow:0 8px 38px rgba(139,92,246,.6); }
+    .cta svg { transition:transform var(--t); }
+    .cta:hover svg { transform:translateX(4px); }
+
+    .pills { display:flex;flex-wrap:wrap;gap:9px;justify-content:center; }
+    .pill {
+      background:rgba(255,255,255,.04);border:1px solid var(--border);
+      color:var(--muted);padding:7px 17px;border-radius:99px;font-size:.8rem;
+      transition:var(--t);
+    }
+    .pill:hover { border-color:var(--border-h);color:var(--text); }
+
+    /* floating cards */
+    .floats { position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1; }
+    .fc {
+      position:absolute;background:rgba(255,255,255,.03);border:1px solid rgba(139,92,246,.18);
+      color:rgba(196,181,253,.55);backdrop-filter:blur(10px);
+      padding:9px 16px;border-radius:var(--rs);font-size:.76rem;font-weight:500;
+      animation:drift 10s ease-in-out infinite;
+    }
+    .fc1{top:17%;left:4%;animation-delay:0s}
+    .fc2{top:28%;right:5%;animation-delay:-2.5s}
+    .fc3{bottom:26%;left:3%;animation-delay:-5s}
+    .fc4{bottom:18%;right:7%;animation-delay:-7s}
+    .fc5{top:52%;left:7%;animation-delay:-9s}
+    @keyframes drift { 0%,100%{transform:translate(0,0) rotate(-1deg)} 33%{transform:translate(8px,-10px) rotate(1deg)} 66%{transform:translate(-5px,7px) rotate(-.5deg)} }
+
+    /* ── DASHBOARD ── */
+    #dash {
+      display: none; min-height: 100vh;
+      opacity: 0; transform: translateY(18px);
+      transition: opacity .45s ease .1s, transform .45s ease .1s;
+    }
+    #dash.visible { display: flex; }
+    #dash.in { opacity: 1; transform: translateY(0); }
+
+    /* sidebar */
+    .sidebar {
+      width: 220px; min-height: 100vh; flex-shrink: 0;
+      background: rgba(255,255,255,.025); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; padding: 22px 14px;
+      position: sticky; top: 0; height: 100vh; overflow-y: auto;
+      transition: transform var(--t); z-index: 5;
+    }
+    .sb-logo { display:flex;align-items:center;gap:9px;font-family:var(--display);font-size:1.15rem;font-weight:700;padding:6px 10px 20px;border-bottom:1px solid var(--border);margin-bottom:14px; }
+    .sb-nav { flex:1;display:flex;flex-direction:column;gap:3px; }
+    .cat {
+      display:flex;align-items:center;gap:9px;width:100%;text-align:left;
+      background:transparent;border:none;color:var(--muted);
+      padding:9px 11px;border-radius:var(--rs);
+      font-family:var(--font);font-size:.855rem;font-weight:500;cursor:pointer;transition:var(--t);
+    }
+    .cat:hover { background:var(--soft);color:var(--text); }
+    .cat.on { background:rgba(139,92,246,.2);color:#c4b5fd;border-left:2px solid var(--purple); }
+    .divider { height:1px;background:var(--border);margin:10px 0; }
+    .home-btn {
+      display:flex;align-items:center;gap:7px;background:transparent;
+      border:1px solid var(--border);color:var(--muted);padding:9px 11px;
+      border-radius:var(--rs);font-size:.8rem;cursor:pointer;transition:var(--t);
+      margin-top:10px;font-family:var(--font);
+    }
+    .home-btn:hover { border-color:var(--border-h);color:var(--text); }
+
+    /* main area */
+    .dash-main { flex:1;min-width:0;display:flex;flex-direction:column; }
+    .dash-header {
+      position:sticky;top:0;z-index:4;display:flex;align-items:center;gap:14px;
+      padding:14px 26px;background:rgba(11,11,15,.82);backdrop-filter:blur(12px);
+      border-bottom:1px solid var(--border);
+    }
+    .ham {
+      display:none;background:transparent;border:none;color:var(--muted);
+      cursor:pointer;padding:5px;border-radius:var(--rs);transition:var(--t);
+    }
+    .ham:hover { color:var(--text); }
+    .search-wrap {
+      flex:1;max-width:460px;display:flex;align-items:center;gap:9px;
+      background:rgba(255,255,255,.05);border:1px solid var(--border);
+      border-radius:99px;padding:0 15px;transition:var(--t);
+    }
+    .search-wrap:focus-within { border-color:var(--purple);box-shadow:0 0 0 3px var(--soft); }
+    .search-wrap svg { color:var(--muted);flex-shrink:0; }
+    #search { flex:1;background:transparent;border:none;outline:none;color:var(--text);font-size:.88rem;padding:9px 0;font-family:var(--font); }
+    #search::placeholder { color:var(--muted); }
+    #clr { background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:.78rem;opacity:0;pointer-events:none;transition:var(--t); }
+    #clr.vis { opacity:1;pointer-events:all; }
+
+    /* grid */
+    .dash-body { padding:26px;flex:1; }
+    .grid-head { display:flex;align-items:baseline;gap:11px;margin-bottom:22px; }
+    .grid-title { font-family:var(--display);font-size:1.4rem;font-weight:700; }
+    .grid-count { color:var(--muted);font-size:.82rem;background:rgba(255,255,255,.05);padding:2px 10px;border-radius:99px; }
+    .tool-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px; }
+
+    /* card */
+    .tool-card {
+      background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:var(--r);
+      padding:20px 16px;cursor:pointer;position:relative;overflow:hidden;
+      transition:var(--t);display:flex;flex-direction:column;gap:11px;
+      text-decoration:none;color:inherit;
+      animation:cardIn .3s ease both;
+    }
+    @keyframes cardIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+    .tool-card::before { content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--soft),transparent);opacity:0;transition:var(--t); }
+    .tool-card:hover { border-color:var(--border-h);transform:translateY(-3px);box-shadow:0 8px 30px rgba(139,92,246,.18); }
+    .tool-card:hover::before { opacity:1; }
+    .card-icon { width:42px;height:42px;border-radius:10px;background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2);display:flex;align-items:center;justify-content:center;font-size:1.35rem;flex-shrink:0;position:relative;z-index:1; }
+    .card-name { position:relative;z-index:1;font-size:.88rem;font-weight:600; }
+    .card-desc { position:relative;z-index:1;font-size:.76rem;color:var(--muted);line-height:1.5; }
+
+    /* cat label */
+    .cat-label { grid-column:1/-1;display:flex;align-items:center;gap:11px;margin-top:6px;margin-bottom:-4px; }
+    .cat-label-text { font-family:var(--display);font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted); }
+    .cat-label-line { flex:1;height:1px;background:var(--border); }
+
+    /* empty */
+    .empty { text-align:center;padding:70px 20px; }
+    .empty-icon { font-size:2.8rem;margin-bottom:14px; }
+    .empty-title { font-size:1rem;font-weight:600;margin-bottom:6px; }
+    .empty-sub { color:var(--muted);font-size:.85rem; }
+
+    /* mobile sidebar */
+    @media(max-width:740px) {
+      .sidebar { position:fixed;top:0;left:0;bottom:0;transform:translateX(-100%);background:var(--bg2); }
+      .sidebar.open { transform:translateX(0);box-shadow:4px 0 40px rgba(0,0,0,.6); }
+      .ham { display:flex; }
+      .l-nav { padding:16px 18px; }
+      .tool-grid { grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px; }
+      .dash-body { padding:16px; }
+      .floats { display:none; }
+    }
+    @media(max-width:420px) {
+      .hero-title { font-size:3.4rem; }
+      .tool-grid { grid-template-columns:1fr 1fr; }
+    }
+    @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms!important;transition-duration:.01ms!important; } }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     LANDING
+═══════════════════════════════════════════════════════════ -->
+<section id="landing">
+  <div class="orbs"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
+  <div class="grid-over"></div>
+
+  <nav class="l-nav">
+    <div class="logo"><span class="logo-star">✦</span> ToolNova</div>
+    <button class="l-nav-btn" onclick="launch()">Launch Tools</button>
+  </nav>
+
+  <main class="hero">
+    <div class="badge"><span class="dot"></span>20 tools · Free forever</div>
+    <h1 class="hero-title">ToolNova</h1>
+    <p class="hero-sub">Everything you need.<br/>One website.</p>
+    <p class="hero-desc">A collection of powerful online tools for developers, gamers, creators, and everyday users. Generate passwords, test your typing, format code, create QR codes and much more — fast and free.</p>
+    <button class="cta" onclick="launch()">
+      <span>Get Started</span>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </button>
+    <div class="pills">
+      <div class="pill">⚡ Fast &amp; lightweight</div>
+      <div class="pill">🔒 No account required</div>
+      <div class="pill">🛠 20 useful tools</div>
+      <div class="pill">📱 Mobile-friendly</div>
+    </div>
+  </main>
+
+  <div class="floats">
+    <div class="fc fc1">QR Generator</div>
+    <div class="fc fc2">JSON Formatter</div>
+    <div class="fc fc3">Typing Speed Test</div>
+    <div class="fc fc4">Password Gen</div>
+    <div class="fc fc5">Color Picker</div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     DASHBOARD
+═══════════════════════════════════════════════════════════ -->
+<section id="dash">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-logo"><span style="color:var(--purple)">✦</span> ToolNova</div>
+    <nav class="sb-nav">
+      <button class="cat on" data-cat="all">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>All Tools
+      </button>
+      <button class="cat" data-cat="utility">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Utility Tools
+      </button>
+      <button class="cat" data-cat="developer">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Developer Tools
+      </button>
+      <button class="cat" data-cat="gaming">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="15" cy="11" r="1"/><circle cx="17" cy="13" r="1"/><path d="M2 8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8z"/></svg>Gaming &amp; Speed
+      </button>
+      <button class="cat" data-cat="social">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Social Tools
+      </button>
+      <div class="divider"></div>
+      <button class="cat" data-cat="favorites">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Favorites
+      </button>
+    </nav>
+    <button class="home-btn" onclick="goHome()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Back to Home
+    </button>
+  </aside>
+
+  <div class="dash-main">
+    <header class="dash-header">
+      <button class="ham" id="ham" onclick="toggleSidebar()" aria-label="Menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div class="search-wrap">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="search" placeholder="Search tools…" autocomplete="off" oninput="onSearch(this.value)"/>
+        <button id="clr" onclick="clearSearch()">✕</button>
+      </div>
+    </header>
+
+    <div class="dash-body">
+      <div class="grid-head">
+        <h2 class="grid-title" id="grid-title">All Tools</h2>
+        <span class="grid-count" id="grid-count"></span>
+      </div>
+      <div class="tool-grid" id="grid"></div>
+      <div class="empty" id="empty" style="display:none">
+        <div class="empty-icon">🔍</div>
+        <p class="empty-title">No tools found</p>
+        <p class="empty-sub">Try a different keyword or category</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+/* ── Tool registry — each entry links to its own HTML file ── */
+const TOOLS = [
+  // Utility
+  { id:'password-gen',  icon:'🔐', name:'Password Generator',      desc:'Generate strong secure passwords',          cat:'utility',   file:'password-gen.html' },
+  { id:'url-shortener', icon:'🔗', name:'URL Shortener',           desc:'Shorten long URLs into compact links',       cat:'utility',   file:'url-shortener.html' },
+  { id:'qr-generator',  icon:'📱', name:'QR Code Generator',       desc:'Create QR codes for any text or URL',        cat:'utility',   file:'qr-generator.html' },
+  { id:'random-number', icon:'🎲', name:'Random Number Generator', desc:'Generate random numbers in any range',        cat:'utility',   file:'random-number.html' },
+  { id:'coin-dice',     icon:'🪙', name:'Coin Flip & Dice Roller', desc:'Flip a coin or roll any dice virtually',      cat:'utility',   file:'coin-dice.html' },
+  { id:'text-tools',    icon:'✏️',  name:'Text Counter & Case',     desc:'Count words, chars and convert case',        cat:'utility',   file:'text-tools.html' },
+  // Developer
+  { id:'json-formatter',icon:'📋', name:'JSON Formatter',          desc:'Beautify, minify and validate JSON',          cat:'developer', file:'json-formatter.html' },
+  { id:'base64',        icon:'🔄', name:'Base64 Encoder/Decoder',  desc:'Encode and decode Base64 strings',            cat:'developer', file:'base64.html' },
+  { id:'color-picker',  icon:'🎨', name:'Color Picker & Palette',  desc:'Pick colors and generate palettes',           cat:'developer', file:'color-picker.html' },
+  { id:'regex-tester',  icon:'🔎', name:'Regex Tester',            desc:'Test and debug regular expressions live',     cat:'developer', file:'regex-tester.html' },
+  { id:'playground',    icon:'🖥️',  name:'HTML/CSS/JS Playground',  desc:'Live-edit and preview web code instantly',   cat:'developer', file:'playground.html' },
+  // Gaming & Speed
+  { id:'typing-test',   icon:'⌨️',  name:'Typing Speed Test',       desc:'Measure your WPM and accuracy',              cat:'gaming',    file:'typing-test.html' },
+  { id:'cps-test',      icon:'🖱️',  name:'CPS Test',                desc:'Measure your clicks per second',             cat:'gaming',    file:'cps-test.html' },
+  { id:'reaction-time', icon:'⚡', name:'Reaction Time Test',      desc:'Test how fast you can react',                 cat:'gaming',    file:'reaction-time.html' },
+  { id:'mouse-accuracy',icon:'🎯', name:'Mouse Accuracy Test',     desc:'Click moving targets to test accuracy',       cat:'gaming',    file:'mouse-accuracy.html' },
+  { id:'username-gen',  icon:'👤', name:'Username Generator',      desc:'Generate cool unique usernames instantly',    cat:'gaming',    file:'username-gen.html' },
+  { id:'team-gen',      icon:'👥', name:'Random Team Generator',   desc:'Split players into balanced random teams',    cat:'gaming',    file:'team-gen.html' },
+  // Social
+  { id:'bio-link',      icon:'🔖', name:'Bio Link Creator',        desc:'Build a custom link-in-bio page',             cat:'social',    file:'bio-link.html' },
+  { id:'social-links',  icon:'🌐', name:'Social Link Manager',     desc:'Organise all your social media links',        cat:'social',    file:'social-links.html' },
+  { id:'profile-card',  icon:'🪪', name:'Profile Card Generator',  desc:'Design a shareable profile card',             cat:'social',    file:'profile-card.html' },
+];
+
+const CAT_NAMES = { all:'All Tools', utility:'Utility Tools', developer:'Developer Tools', gaming:'Gaming & Speed', social:'Social Tools', favorites:'Favorites' };
+
+let currentCat = 'all';
+let searchQ    = '';
+let favorites  = JSON.parse(localStorage.getItem('tn_favs') || '[]');
+
+/* ── Nav ── */
+function launch() {
+  const l = document.getElementById('landing');
+  l.classList.add('exit');
+  setTimeout(() => {
+    l.classList.add('gone');
+    const d = document.getElementById('dash');
+    d.classList.add('visible');
+    requestAnimationFrame(() => d.classList.add('in'));
+  }, 580);
+}
+
+function goHome() {
+  const d = document.getElementById('dash');
+  d.classList.remove('in');
+  setTimeout(() => {
+    d.classList.remove('visible');
+    const l = document.getElementById('landing');
+    l.classList.remove('gone','exit');
+  }, 300);
+}
+
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+document.addEventListener('click', e => {
+  const sb = document.getElementById('sidebar');
+  if (!sb.contains(e.target) && !document.getElementById('ham').contains(e.target)) sb.classList.remove('open');
+});
+
+/* ── Category buttons ── */
+document.querySelectorAll('.cat').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.cat').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    currentCat = btn.dataset.cat;
+    document.getElementById('search').value = '';
+    searchQ = '';
+    document.getElementById('clr').classList.remove('vis');
+    renderGrid();
+    document.getElementById('sidebar').classList.remove('open');
+  });
+});
+
+/* ── Search ── */
+function onSearch(v) {
+  searchQ = v.trim().toLowerCase();
+  document.getElementById('clr').classList.toggle('vis', searchQ.length > 0);
+  renderGrid();
+}
+function clearSearch() {
+  document.getElementById('search').value = '';
+  searchQ = '';
+  document.getElementById('clr').classList.remove('vis');
+  document.getElementById('search').focus();
+  renderGrid();
+}
+
+/* ── Favorites ── */
+function isFav(id) { return favorites.includes(id); }
+function toggleFav(e, id) {
+  e.preventDefault(); e.stopPropagation();
+  favorites = isFav(id) ? favorites.filter(f=>f!==id) : [...favorites, id];
+  localStorage.setItem('tn_favs', JSON.stringify(favorites));
+  renderGrid();
+}
+
+/* ── Grid ── */
+function getFiltered() {
+  let tools = TOOLS;
+  if (currentCat === 'favorites') tools = tools.filter(t => isFav(t.id));
+  else if (currentCat !== 'all')  tools = tools.filter(t => t.cat === currentCat);
+  if (searchQ) tools = tools.filter(t => t.name.toLowerCase().includes(searchQ) || t.desc.toLowerCase().includes(searchQ));
+  return tools;
+}
+
+function renderGrid() {
+  const tools  = getFiltered();
+  const grid   = document.getElementById('grid');
+  const empty  = document.getElementById('empty');
+  const title  = document.getElementById('grid-title');
+  const count  = document.getElementById('grid-count');
+
+  title.textContent = searchQ ? `Results for "${document.getElementById('search').value}"` : CAT_NAMES[currentCat];
+  count.textContent = `${tools.length} tool${tools.length!==1?'s':''}`;
+  grid.innerHTML = '';
+  empty.style.display = tools.length ? 'none' : 'block';
+
+  const grouped = currentCat === 'all' && !searchQ;
+  const cats = ['utility','developer','gaming','social'];
+
+  if (grouped) {
+    cats.forEach(cat => {
+      const ct = tools.filter(t => t.cat === cat);
+      if (!ct.length) return;
+      const lbl = document.createElement('div');
+      lbl.className = 'cat-label';
+      lbl.innerHTML = `<span class="cat-label-text">${CAT_NAMES[cat]}</span><div class="cat-label-line"></div>`;
+      grid.appendChild(lbl);
+      ct.forEach((t,i) => grid.appendChild(makeCard(t,i)));
+    });
+  } else {
+    tools.forEach((t,i) => grid.appendChild(makeCard(t,i)));
+  }
+}
+
+function makeCard(tool, i) {
+  const a = document.createElement('a');
+  a.className = 'tool-card';
+  a.href = tool.file;
+  a.style.animationDelay = `${i*35}ms`;
+  a.innerHTML = `
+    <div class="card-icon">${tool.icon}</div>
+    <div>
+      <div class="card-name">${tool.name}</div>
+      <div class="card-desc">${tool.desc}</div>
+    </div>
+    <button style="position:absolute;top:10px;right:10px;background:transparent;border:none;cursor:pointer;font-size:1rem;opacity:${isFav(tool.id)?1:0};color:${isFav(tool.id)?'#facc15':'var(--muted)'};transition:.2s" title="Favourite" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity='${isFav(tool.id)?1:0}'" onclick="toggleFav(event,'${tool.id}')">★</button>
+  `;
+  return a;
+}
+
+renderGrid();
+</script>
+</body>
+</html>

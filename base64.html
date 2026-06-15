@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Base64 Encoder/Decoder — ToolNova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div></div>
+<div class="tool-page">
+  <nav class="topbar">
+    <a class="topbar-logo" href="index.html"><span>✦</span> ToolNova</a>
+    <span class="topbar-sep">/</span>
+    <span class="topbar-tool">Base64 Encoder/Decoder</span>
+    <a class="topbar-back" href="index.html">← All Tools</a>
+  </nav>
+  <div class="tool-content">
+    <div class="tool-hero">
+      <div class="tool-hero-icon">🔄</div>
+      <div><div class="tool-hero-title">Base64 Encoder / Decoder</div><div class="tool-hero-desc">Encode text to Base64 or decode Base64 back to text</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Input</div>
+      <div class="fg">
+        <label class="lbl">Text or Base64 string</label>
+        <textarea id="b64In" rows="6" placeholder="Enter text to encode, or Base64 to decode…"></textarea>
+      </div>
+      <div class="btns">
+        <button class="btn btn-p" onclick="encode()">Encode →</button>
+        <button class="btn btn-s" onclick="decode()">← Decode</button>
+        <button class="btn btn-s" onclick="autoDetect()">Auto detect</button>
+        <button class="btn btn-s" onclick="swap()">⇅ Swap</button>
+        <button class="btn btn-s" onclick="clearAll()">Clear</button>
+      </div>
+    </div>
+
+    <div class="card" id="outCard" style="display:none">
+      <div class="card-title">Output</div>
+      <div class="out" id="b64Out" style="min-height:80px;cursor:pointer" onclick="copy(this.textContent)"></div>
+      <div class="btns">
+        <button class="copy-btn" onclick="copy(document.getElementById('b64Out').textContent)">📋 Copy output</button>
+      </div>
+      <div id="b64Info" style="margin-top:12px;color:var(--muted);font-size:.8rem"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">URL-Safe Base64</div>
+      <p style="color:var(--muted);font-size:.85rem;margin-bottom:12px">URL-safe variant replaces <code style="background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px">+</code> with <code style="background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px">-</code> and <code style="background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px">/</code> with <code style="background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px">_</code></p>
+      <div class="btns">
+        <button class="btn btn-s" onclick="encodeUrl()">Encode URL-safe →</button>
+        <button class="btn btn-s" onclick="decodeUrl()">← Decode URL-safe</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+function copy(text){navigator.clipboard.writeText(text.trim()).then(()=>toast('Copied!'));}
+function getIn(){return document.getElementById('b64In').value;}
+function showOut(text,isErr=false){
+  const el=document.getElementById('b64Out');
+  el.textContent=text; el.className='out'+(isErr?' err':'');
+  document.getElementById('outCard').style.display='block';
+  if(!isErr){
+    const inLen=getIn().length, outLen=text.length;
+    document.getElementById('b64Info').textContent=`Input: ${inLen} chars → Output: ${outLen} chars`;
+  } else {
+    document.getElementById('b64Info').textContent='';
+  }
+}
+
+function encode(){
+  const v=getIn(); if(!v){toast('Enter text first');return;}
+  try{showOut(btoa(unescape(encodeURIComponent(v))));}
+  catch(e){showOut('Error: '+e.message,true);}
+}
+function decode(){
+  const v=getIn().trim(); if(!v){toast('Enter Base64 first');return;}
+  try{showOut(decodeURIComponent(escape(atob(v))));}
+  catch(e){showOut('Error: Invalid Base64 — '+e.message,true);}
+}
+function encodeUrl(){
+  const v=getIn(); if(!v){toast('Enter text first');return;}
+  try{showOut(btoa(unescape(encodeURIComponent(v))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,''));}
+  catch(e){showOut('Error: '+e.message,true);}
+}
+function decodeUrl(){
+  let v=getIn().trim().replace(/-/g,'+').replace(/_/g,'/');
+  while(v.length%4)v+='=';
+  try{showOut(decodeURIComponent(escape(atob(v))));}
+  catch(e){showOut('Error: '+e.message,true);}
+}
+function autoDetect(){
+  const v=getIn().trim();
+  if(!v){toast('Enter some text first');return;}
+  if(/^[A-Za-z0-9+/=_-]+$/.test(v)&&v.length%4===0){decode();}else{encode();}
+}
+function swap(){
+  const out=document.getElementById('b64Out').textContent.trim();
+  if(!out){toast('No output to swap');return;}
+  document.getElementById('b64In').value=out;
+  document.getElementById('outCard').style.display='none';
+  toast('Swapped');
+}
+function clearAll(){
+  document.getElementById('b64In').value='';
+  document.getElementById('outCard').style.display='none';
+}
+</script>
+</body>
+</html>

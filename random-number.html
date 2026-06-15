@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Random Number Generator — ToolNova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div></div>
+<div class="tool-page">
+  <nav class="topbar">
+    <a class="topbar-logo" href="index.html"><span>✦</span> ToolNova</a>
+    <span class="topbar-sep">/</span>
+    <span class="topbar-tool">Random Number Generator</span>
+    <a class="topbar-back" href="index.html">← All Tools</a>
+  </nav>
+  <div class="tool-content">
+    <div class="tool-hero">
+      <div class="tool-hero-icon">🎲</div>
+      <div><div class="tool-hero-title">Random Number Generator</div><div class="tool-hero-desc">Generate truly random numbers in any range</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Settings</div>
+      <div class="row">
+        <div class="fg"><label class="lbl">Min</label><input type="number" id="rMin" value="1"/></div>
+        <div class="fg"><label class="lbl">Max</label><input type="number" id="rMax" value="100"/></div>
+        <div class="fg"><label class="lbl">Count</label><input type="number" id="rCount" value="1" min="1" max="100"/></div>
+      </div>
+      <div class="fg">
+        <label class="lbl">Options</label>
+        <div class="checks">
+          <label class="chk"><input type="checkbox" id="rUnique"/> No duplicates</label>
+          <label class="chk"><input type="checkbox" id="rSort"/> Sort results</label>
+        </div>
+      </div>
+      <div class="btns">
+        <button class="btn btn-p" onclick="generate()">Generate</button>
+        <button class="btn btn-s" onclick="generate()">Re-roll 🎲</button>
+      </div>
+    </div>
+
+    <div class="card" id="resultCard" style="display:none">
+      <div class="card-title">Result</div>
+      <div id="bigNum" style="text-align:center;font-family:var(--display);font-size:4rem;font-weight:700;color:var(--purple);padding:16px 0;line-height:1"></div>
+      <div id="multiNums" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"></div>
+      <div class="btns">
+        <button class="copy-btn" onclick="copyResults()">📋 Copy results</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Quick Roll</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px">
+        <button class="btn btn-s" onclick="quickRoll(2)">Coin (1–2)</button>
+        <button class="btn btn-s" onclick="quickRoll(6)">D6</button>
+        <button class="btn btn-s" onclick="quickRoll(10)">D10</button>
+        <button class="btn btn-s" onclick="quickRoll(20)">D20</button>
+        <button class="btn btn-s" onclick="quickRoll(100)">D100</button>
+        <button class="btn btn-s" onclick="setRange(1,49,6)">Lottery</button>
+      </div>
+      <div id="quickResult" style="margin-top:14px"></div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+
+let lastResults = [];
+
+function rand(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+
+function generate(){
+  const min=parseInt(document.getElementById('rMin').value);
+  const max=parseInt(document.getElementById('rMax').value);
+  const count=Math.min(100,Math.max(1,parseInt(document.getElementById('rCount').value)||1));
+  const unique=document.getElementById('rUnique').checked;
+  const sort=document.getElementById('rSort').checked;
+
+  if(min>max){toast('Min must be less than Max');return;}
+  if(unique&&(max-min+1)<count){toast('Range too small for unique numbers');return;}
+
+  const results=[];
+  const used=new Set();
+  while(results.length<count){
+    let n=rand(min,max);
+    if(unique){while(used.has(n))n=rand(min,max);used.add(n);}
+    results.push(n);
+  }
+  if(sort)results.sort((a,b)=>a-b);
+  lastResults=results;
+
+  document.getElementById('resultCard').style.display='block';
+  if(count===1){
+    document.getElementById('bigNum').textContent=results[0];
+    document.getElementById('multiNums').innerHTML='';
+  } else {
+    document.getElementById('bigNum').textContent='';
+    document.getElementById('multiNums').innerHTML=results.map(n=>`
+      <div style="background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.25);border-radius:8px;padding:10px 16px;font-family:var(--display);font-size:1.2rem;font-weight:700;color:var(--purple)">${n}</div>
+    `).join('');
+  }
+}
+
+function copyResults(){
+  navigator.clipboard.writeText(lastResults.join(', ')).then(()=>toast('Copied!'));
+}
+
+function quickRoll(sides){
+  const n=rand(1,sides);
+  document.getElementById('quickResult').innerHTML=`
+    <div style="text-align:center;font-family:var(--display);font-size:2.5rem;font-weight:700;color:var(--purple);padding:10px">${n}</div>
+    <div style="text-align:center;color:var(--muted);font-size:.82rem">D${sides} → rolled ${n}</div>
+  `;
+}
+
+function setRange(min,max,count){
+  document.getElementById('rMin').value=min;
+  document.getElementById('rMax').value=max;
+  document.getElementById('rCount').value=count;
+  document.getElementById('rUnique').checked=true;
+  document.getElementById('rSort').checked=true;
+  generate();
+}
+
+generate();
+</script>
+</body>
+</html>

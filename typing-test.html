@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Typing Speed Test — ToolNova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+.typing-display{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;padding:20px;font-family:var(--mono);font-size:1.05rem;line-height:1.9;min-height:110px;cursor:text;user-select:none;word-wrap:break-word}
+.ch{color:var(--muted)}
+.ch.ok{color:#6ee7b7}
+.ch.err{color:#fca5a5;background:rgba(248,113,113,.12);border-radius:2px}
+.ch.cur{border-bottom:2px solid var(--purple)}
+.typing-input{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text);padding:12px 16px;border-radius:10px;font-size:1rem;font-family:var(--mono);outline:none;transition:.2s;margin-bottom:14px}
+.typing-input:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(139,92,246,.15)}
+.dur-btn{padding:7px 18px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:.82rem;transition:.2s}
+.dur-btn.on{background:rgba(139,92,246,.2);border-color:var(--border-h);color:#c4b5fd}
+</style>
+</head>
+<body>
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div></div>
+<div class="tool-page">
+  <nav class="topbar">
+    <a class="topbar-logo" href="index.html"><span>✦</span> ToolNova</a>
+    <span class="topbar-sep">/</span>
+    <span class="topbar-tool">Typing Speed Test</span>
+    <a class="topbar-back" href="index.html">← All Tools</a>
+  </nav>
+  <div class="tool-content">
+    <div class="tool-hero">
+      <div class="tool-hero-icon">⌨️</div>
+      <div><div class="tool-hero-title">Typing Speed Test</div><div class="tool-hero-desc">Measure your WPM, accuracy and track your best</div></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="dur-btn on" data-d="15" onclick="setDur(15,this)">15s</button>
+          <button class="dur-btn" data-d="30" onclick="setDur(30,this)">30s</button>
+          <button class="dur-btn" data-d="60" onclick="setDur(60,this)">60s</button>
+          <button class="dur-btn" data-d="120" onclick="setDur(120,this)">120s</button>
+        </div>
+        <div style="font-family:var(--mono);font-size:1.3rem;font-weight:700;color:var(--purple)" id="timer">15s</div>
+      </div>
+
+      <div class="stats" style="margin-bottom:16px">
+        <div class="stat"><div class="stat-val" id="sWpm">0</div><div class="stat-key">WPM</div></div>
+        <div class="stat"><div class="stat-val" id="sAcc">100%</div><div class="stat-key">Accuracy</div></div>
+        <div class="stat"><div class="stat-val" id="sErr">0</div><div class="stat-key">Errors</div></div>
+        <div class="stat"><div class="stat-val" id="sWords">0</div><div class="stat-key">Words</div></div>
+        <div class="stat"><div class="stat-val" id="sBest">—</div><div class="stat-key">Best WPM</div></div>
+      </div>
+
+      <div class="typing-display" id="display" onclick="document.getElementById('inp').focus()"></div>
+
+      <input class="typing-input" id="inp" type="text"
+        placeholder="Click here or on the text above to start…"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+
+      <div class="btns">
+        <button class="btn btn-s" onclick="reset()">↺ Restart</button>
+        <button class="btn btn-s" onclick="newQuote()">New text</button>
+      </div>
+    </div>
+
+    <div class="card" id="resultCard" style="display:none">
+      <div class="card-title">Result</div>
+      <div id="resultBody"></div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+
+const QUOTES=[
+  "The quick brown fox jumps over the lazy dog near the riverbank on a warm summer afternoon.",
+  "Programming is the art of telling another human what one wants the computer to do with precision.",
+  "The best way to predict the future is to invent it one line of code at a time.",
+  "In the middle of every difficulty lies an opportunity waiting to be discovered by those who persist.",
+  "Success is not final failure is not fatal it is the courage to continue that counts above all else.",
+  "Design is not just what it looks like and feels like design is how it works in the real world.",
+  "Any sufficiently advanced technology is indistinguishable from magic according to Arthur C Clarke.",
+  "The only way to do great work is to love what you do and never stop learning new skills every day.",
+  "Simplicity is the ultimate sophistication as Leonardo da Vinci once wisely observed centuries ago.",
+  "To iterate is human to recurse divine and to ship working software is the highest calling of all.",
+  "Good code is its own best documentation as you are about to add a comment ask yourself this question.",
+  "Talk is cheap show me the code because a thousand words are worth much less than a single working demo.",
+];
+
+let chars=[],ci=0,startTime=null,interval=null,dur=15,timeLeft=15;
+let totalTyped=0,correct=0,errors=0,active=false,finished=false;
+
+const inp=document.getElementById('inp');
+
+inp.addEventListener('input',handleInput);
+inp.addEventListener('keydown',e=>{
+  if(e.key==='Backspace'&&ci>0&&!finished){ci--;totalTyped=Math.max(0,totalTyped-1);renderDisplay();e.preventDefault();}
+});
+
+function setDur(d,btn){
+  document.querySelectorAll('.dur-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  dur=d;reset();
+}
+
+function init(){
+  chars=QUOTES[Math.floor(Math.random()*QUOTES.length)].split('');
+  ci=0;startTime=null;totalTyped=0;correct=0;errors=0;active=false;finished=false;
+  timeLeft=dur;clearInterval(interval);
+  document.getElementById('timer').textContent=dur+'s';
+  resetStats();renderDisplay();
+  inp.value='';inp.disabled=false;inp.placeholder='Click here to start typing…';
+  document.getElementById('resultCard').style.display='none';
+}
+
+function renderDisplay(){
+  document.getElementById('display').innerHTML=chars.map((c,i)=>{
+    let cls='ch';
+    if(i<ci)cls+=' ok';
+    if(i===ci)cls+=' cur';
+    const esc=c==='<'?'&lt;':c==='>'?'&gt;':c==='&'?'&amp;':c===' '?'&nbsp;':c;
+    return `<span class="${cls}">${esc}</span>`;
+  }).join('');
+}
+
+function resetStats(){
+  document.getElementById('sWpm').textContent='0';
+  document.getElementById('sAcc').textContent='100%';
+  document.getElementById('sErr').textContent='0';
+  document.getElementById('sWords').textContent='0';
+  const best=localStorage.getItem('tn_typing_best');
+  document.getElementById('sBest').textContent=best?best+'wpm':'—';
+}
+
+function handleInput(e){
+  if(finished)return;
+  const val=inp.value;if(!val.length)return;
+  const ch=val[val.length-1];inp.value='';
+  if(!active){active=true;startTime=Date.now();startTimer();}
+  if(ci<chars.length){
+    totalTyped++;
+    if(ch===chars[ci])correct++;
+    else errors++;
+    ci++;
+    renderDisplay();
+    updateStats();
+  }
+  if(ci>=chars.length)finish();
+}
+
+function startTimer(){
+  interval=setInterval(()=>{
+    timeLeft=Math.max(0,dur-Math.floor((Date.now()-startTime)/1000));
+    document.getElementById('timer').textContent=timeLeft+'s';
+    updateStats();
+    if(timeLeft<=0)finish();
+  },200);
+}
+
+function updateStats(){
+  const elapsed=startTime?(Date.now()-startTime)/60000:0;
+  const wpm=elapsed>0?Math.round((correct/5)/elapsed):0;
+  const acc=totalTyped>0?Math.round((correct/totalTyped)*100):100;
+  document.getElementById('sWpm').textContent=wpm;
+  document.getElementById('sAcc').textContent=acc+'%';
+  document.getElementById('sErr').textContent=errors;
+  document.getElementById('sWords').textContent=Math.floor(ci/5);
+}
+
+function finish(){
+  clearInterval(interval);finished=true;active=false;
+  inp.disabled=true;inp.placeholder='Test complete!';
+  const elapsed=startTime?(Date.now()-startTime)/60000:dur/60;
+  const wpm=Math.round((correct/5)/elapsed);
+  const acc=totalTyped>0?Math.round((correct/totalTyped)*100):100;
+  const best=Math.max(wpm,parseInt(localStorage.getItem('tn_typing_best')||'0'));
+  localStorage.setItem('tn_typing_best',best);
+  document.getElementById('sBest').textContent=best+'wpm';
+  const grade=wpm>=100?'🏆 Elite!':wpm>=80?'🥇 Excellent!':wpm>=60?'⭐ Great!':wpm>=40?'👍 Good':wpm>=25?'📈 Keep going!':'🌱 Keep practicing!';
+  document.getElementById('resultCard').style.display='block';
+  document.getElementById('resultBody').innerHTML=`
+    <div style="text-align:center;padding:16px">
+      <div style="font-size:1.6rem;margin-bottom:16px">${grade}</div>
+      <div class="stats" style="justify-content:center;margin-bottom:20px">
+        <div class="stat"><div class="stat-val">${wpm}</div><div class="stat-key">WPM</div></div>
+        <div class="stat"><div class="stat-val">${acc}%</div><div class="stat-key">Accuracy</div></div>
+        <div class="stat"><div class="stat-val">${errors}</div><div class="stat-key">Errors</div></div>
+        <div class="stat"><div class="stat-val">${best}</div><div class="stat-key">Best WPM</div></div>
+      </div>
+      <div class="btns" style="justify-content:center">
+        <button class="btn btn-p" onclick="reset()">Try again</button>
+        <button class="btn btn-s" onclick="newQuote()">New text</button>
+      </div>
+    </div>`;
+}
+
+function reset(){init();}
+function newQuote(){init();}
+
+init();
+</script>
+</body>
+</html>

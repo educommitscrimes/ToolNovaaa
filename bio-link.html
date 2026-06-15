@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Bio Link Creator — ToolNova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+.preview-frame{width:100%;height:420px;border:none;border-radius:12px;background:#fff}
+.link-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.link-row input{flex:1}
+.link-row .rm{background:transparent;border:1px solid var(--border);color:var(--muted);padding:9px 12px;border-radius:8px;cursor:pointer;transition:.2s;flex-shrink:0}
+.link-row .rm:hover{border-color:rgba(239,68,68,.5);color:#fca5a5}
+.theme-btn{width:32px;height:32px;border-radius:8px;border:2px solid transparent;cursor:pointer;transition:.2s}
+.theme-btn.on{border-color:white;transform:scale(1.15)}
+</style>
+</head>
+<body>
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div></div>
+<div class="tool-page">
+  <nav class="topbar">
+    <a class="topbar-logo" href="index.html"><span>✦</span> ToolNova</a>
+    <span class="topbar-sep">/</span>
+    <span class="topbar-tool">Bio Link Creator</span>
+    <a class="topbar-back" href="index.html">← All Tools</a>
+  </nav>
+  <div class="tool-content" style="max-width:900px">
+    <div class="tool-hero">
+      <div class="tool-hero-icon">🔖</div>
+      <div><div class="tool-hero-title">Bio Link Creator</div><div class="tool-hero-desc">Build a beautiful link-in-bio page and download it</div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <!-- Editor -->
+      <div>
+        <div class="card">
+          <div class="card-title">Profile</div>
+          <div class="fg"><label class="lbl">Display name</label><input type="text" id="bioName" value="Alex Nova" oninput="preview()"/></div>
+          <div class="fg"><label class="lbl">Bio / tagline</label><input type="text" id="bioBio" value="Developer · Creator · Dreamer ✨" oninput="preview()"/></div>
+          <div class="row">
+            <div class="fg"><label class="lbl">Avatar emoji</label><input type="text" id="bioEmoji" value="🚀" maxlength="2" oninput="preview()"/></div>
+            <div class="fg"><label class="lbl">Accent color</label><input type="color" id="bioColor" value="#8b5cf6" oninput="preview()"/></div>
+          </div>
+          <div class="fg">
+            <label class="lbl">Background theme</label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <div class="theme-btn on" style="background:linear-gradient(135deg,#0b0b0f,#1a0a2e)" data-t="dark" onclick="setTheme('dark',this)" title="Dark"></div>
+              <div class="theme-btn" style="background:linear-gradient(135deg,#f8fafc,#e2e8f0)" data-t="light" onclick="setTheme('light',this)" title="Light"></div>
+              <div class="theme-btn" style="background:linear-gradient(135deg,#1e1b4b,#312e81)" data-t="indigo" onclick="setTheme('indigo',this)" title="Indigo"></div>
+              <div class="theme-btn" style="background:linear-gradient(135deg,#0f172a,#1e3a5f)" data-t="ocean" onclick="setTheme('ocean',this)" title="Ocean"></div>
+              <div class="theme-btn" style="background:linear-gradient(135deg,#1a0a2e,#2d0a3d)" data-t="purple" onclick="setTheme('purple',this)" title="Purple"></div>
+              <div class="theme-btn" style="background:linear-gradient(135deg,#1a1a1a,#2d2d2d)" data-t="black" onclick="setTheme('black',this)" title="Black"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Links</div>
+          <div id="linkRows">
+            <div class="link-row"><input type="text" placeholder="Label (e.g. Twitter)" oninput="preview()"/><input type="url" placeholder="https://…" oninput="preview()"/><button class="rm" onclick="removeLink(this)">✕</button></div>
+            <div class="link-row"><input type="text" placeholder="Label" oninput="preview()" value="GitHub"/><input type="url" placeholder="https://…" oninput="preview()" value="https://github.com"/><button class="rm" onclick="removeLink(this)">✕</button></div>
+            <div class="link-row"><input type="text" placeholder="Label" oninput="preview()" value="Twitter"/><input type="url" placeholder="https://…" oninput="preview()" value="https://twitter.com"/><button class="rm" onclick="removeLink(this)">✕</button></div>
+          </div>
+          <div class="btns">
+            <button class="btn btn-s btn-xs" onclick="addLink()">+ Add link</button>
+          </div>
+        </div>
+
+        <div class="btns">
+          <button class="btn btn-p" onclick="download()">⬇ Download HTML</button>
+          <a id="previewLink" href="#" target="_blank" class="btn btn-s">👁 Open preview</a>
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
+            <div style="display:flex;gap:5px"><div style="width:10px;height:10px;border-radius:50%;background:#ef4444"></div><div style="width:10px;height:10px;border-radius:50%;background:#eab308"></div><div style="width:10px;height:10px;border-radius:50%;background:#22c55e"></div></div>
+            <span style="color:var(--muted);font-size:.75rem;flex:1;text-align:center">Live preview</span>
+          </div>
+          <iframe class="preview-frame" id="previewFrame" sandbox="allow-scripts allow-same-origin"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+let theme='dark';
+const THEMES={
+  dark:  {bg:'linear-gradient(135deg,#0b0b0f,#1a0a2e)',card:'rgba(255,255,255,.06)',text:'#f0f0f8',muted:'#aaa',link:'rgba(255,255,255,.08)',linkH:'rgba(255,255,255,.15)'},
+  light: {bg:'linear-gradient(135deg,#f8fafc,#e2e8f0)',card:'rgba(0,0,0,.05)',text:'#1e293b',muted:'#64748b',link:'rgba(0,0,0,.07)',linkH:'rgba(0,0,0,.12)'},
+  indigo:{bg:'linear-gradient(135deg,#1e1b4b,#312e81)',card:'rgba(255,255,255,.08)',text:'#e0e7ff',muted:'#a5b4fc',link:'rgba(255,255,255,.1)',linkH:'rgba(255,255,255,.18)'},
+  ocean: {bg:'linear-gradient(135deg,#0f172a,#1e3a5f)',card:'rgba(255,255,255,.07)',text:'#e2f3ff',muted:'#7dd3fc',link:'rgba(255,255,255,.09)',linkH:'rgba(255,255,255,.16)'},
+  purple:{bg:'linear-gradient(135deg,#1a0a2e,#2d0a3d)',card:'rgba(255,255,255,.07)',text:'#f3e8ff',muted:'#c4b5fd',link:'rgba(255,255,255,.08)',linkH:'rgba(255,255,255,.15)'},
+  black: {bg:'linear-gradient(135deg,#1a1a1a,#2d2d2d)',card:'rgba(255,255,255,.06)',text:'#f5f5f5',muted:'#999',link:'rgba(255,255,255,.08)',linkH:'rgba(255,255,255,.14)'},
+};
+
+function setTheme(t,btn){
+  theme=t;
+  document.querySelectorAll('.theme-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  preview();
+}
+
+function addLink(){
+  const row=document.createElement('div');
+  row.className='link-row';
+  row.innerHTML=`<input type="text" placeholder="Label" oninput="preview()"/><input type="url" placeholder="https://…" oninput="preview()"/><button class="rm" onclick="removeLink(this)">✕</button>`;
+  document.getElementById('linkRows').appendChild(row);
+}
+
+function removeLink(btn){btn.closest('.link-row').remove();preview();}
+
+function getLinks(){
+  return [...document.querySelectorAll('.link-row')].map(r=>{
+    const ins=[...r.querySelectorAll('input')];
+    return{label:ins[0].value.trim(),url:ins[1].value.trim()};
+  }).filter(l=>l.label&&l.url);
+}
+
+function buildHTML(){
+  const name=document.getElementById('bioName').value||'Your Name';
+  const bio=document.getElementById('bioBio').value||'';
+  const emoji=document.getElementById('bioEmoji').value||'😊';
+  const color=document.getElementById('bioColor').value||'#8b5cf6';
+  const links=getLinks();
+  const th=THEMES[theme];
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${name}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;background:${th.bg};padding:20px}
+.card{width:100%;max-width:380px;text-align:center;padding:40px 24px}
+.avatar{width:80px;height:80px;border-radius:50%;background:${color}22;border:2px solid ${color};display:flex;align-items:center;justify-content:center;font-size:2.2rem;margin:0 auto 16px}
+h1{font-size:1.5rem;font-weight:700;color:${th.text};margin-bottom:6px}
+.bio{color:${th.muted};font-size:.9rem;margin-bottom:28px;line-height:1.5}
+.links{display:flex;flex-direction:column;gap:10px}
+a{display:block;padding:13px 22px;background:${th.link};border:1px solid ${color}44;border-radius:99px;color:${th.text};text-decoration:none;font-size:.9rem;font-weight:500;transition:.2s}
+a:hover{background:${color}33;border-color:${color}88}
+.footer{margin-top:28px;color:${th.muted};font-size:.72rem;opacity:.6}
+</style></head><body>
+<div class="card">
+  <div class="avatar">${emoji}</div>
+  <h1>${name}</h1>
+  <div class="bio">${bio}</div>
+  <div class="links">${links.map(l=>`<a href="${l.url}" target="_blank">${l.label}</a>`).join('')}</div>
+  <div class="footer">Made with ToolNova</div>
+</div></body></html>`;
+}
+
+let blobUrl=null;
+function preview(){
+  const html=buildHTML();
+  if(blobUrl)URL.revokeObjectURL(blobUrl);
+  const blob=new Blob([html],{type:'text/html'});
+  blobUrl=URL.createObjectURL(blob);
+  document.getElementById('previewFrame').src=blobUrl;
+  document.getElementById('previewLink').href=blobUrl;
+}
+
+function download(){
+  const html=buildHTML();
+  const blob=new Blob([html],{type:'text/html'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='bio-link.html';
+  a.click();
+  toast('Downloaded! Open the file in your browser.');
+}
+
+preview();
+</script>
+</body>
+</html>

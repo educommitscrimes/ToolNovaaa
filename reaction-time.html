@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Reaction Time Test — ToolNova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+.react-box {
+  width:100%;height:220px;border-radius:16px;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;
+  cursor:pointer;transition:background .12s,border-color .12s;
+  border:2px solid transparent;user-select:none;
+}
+.react-box.idle    {background:rgba(255,255,255,.04);border-color:var(--border)}
+.react-box.waiting {background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3)}
+.react-box.go      {background:rgba(52,211,153,.15);border-color:rgba(52,211,153,.4)}
+.react-box.result  {background:rgba(139,92,246,.12);border-color:rgba(139,92,246,.35)}
+.react-box.early   {background:rgba(251,191,36,.1);border-color:rgba(251,191,36,.3)}
+.react-title{font-family:var(--display);font-size:1.3rem;font-weight:700}
+.react-sub{font-size:.85rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div></div>
+<div class="tool-page">
+  <nav class="topbar">
+    <a class="topbar-logo" href="index.html"><span>✦</span> ToolNova</a>
+    <span class="topbar-sep">/</span>
+    <span class="topbar-tool">Reaction Time Test</span>
+    <a class="topbar-back" href="index.html">← All Tools</a>
+  </nav>
+  <div class="tool-content">
+    <div class="tool-hero">
+      <div class="tool-hero-icon">⚡</div>
+      <div><div class="tool-hero-title">Reaction Time Test</div><div class="tool-hero-desc">Measure how fast you react — test your reflexes</div></div>
+    </div>
+
+    <div class="card">
+      <div class="react-box idle" id="box" onclick="handleClick()">
+        <div class="react-title" id="boxTitle">Click to start</div>
+        <div class="react-sub" id="boxSub">Test your reaction speed</div>
+      </div>
+
+      <div class="stats" style="margin-top:16px" id="statsRow">
+        <div class="stat"><div class="stat-val" id="sLast">—</div><div class="stat-key">Last (ms)</div></div>
+        <div class="stat"><div class="stat-val" id="sBest">—</div><div class="stat-key">Best (ms)</div></div>
+        <div class="stat"><div class="stat-val" id="sAvg">—</div><div class="stat-key">Average (ms)</div></div>
+        <div class="stat"><div class="stat-val" id="sCount">0</div><div class="stat-key">Attempts</div></div>
+      </div>
+
+      <div class="btns" style="margin-top:12px">
+        <button class="btn btn-s" onclick="reset()">Reset</button>
+      </div>
+    </div>
+
+    <div class="card" id="histCard">
+      <div class="card-title">Attempt history</div>
+      <div id="hist" style="display:flex;flex-wrap:wrap;gap:6px">
+        <span style="color:var(--muted);font-size:.82rem">No attempts yet</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Reaction Time Scale</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:center;gap:10px"><div style="width:10px;height:10px;border-radius:50%;background:#8b5cf6"></div><span style="color:var(--muted);font-size:.85rem">&lt; 150ms — Superhuman</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><div style="width:10px;height:10px;border-radius:50%;background:#22c55e"></div><span style="color:var(--muted);font-size:.85rem">150–200ms — Elite</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><div style="width:10px;height:10px;border-radius:50%;background:#84cc16"></div><span style="color:var(--muted);font-size:.85rem">200–250ms — Excellent</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><div style="width:10px;height:10px;border-radius:50%;background:#eab308"></div><span style="color:var(--muted);font-size:.85rem">250–350ms — Average</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><div style="width:10px;height:10px;border-radius:50%;background:#f97316"></div><span style="color:var(--muted);font-size:.85rem">350–500ms — Below average</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><div style="width:10px;height:10px;border-radius:50%;background:#ef4444"></div><span style="color:var(--muted);font-size:.85rem">&gt; 500ms — Slow</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+let state='idle', timer=null, startTime=0, times=[];
+
+function setBox(s,title,sub){
+  const b=document.getElementById('box');
+  b.className='react-box '+s;
+  document.getElementById('boxTitle').textContent=title;
+  document.getElementById('boxSub').textContent=sub;
+  state=s;
+}
+
+function handleClick(){
+  if(state==='idle'||state==='result'||state==='early'){
+    // Start waiting
+    setBox('waiting','Wait for green…','Don\'t click yet!');
+    const delay=1000+Math.random()*3500;
+    timer=setTimeout(()=>{
+      startTime=Date.now();
+      setBox('go','CLICK NOW!','As fast as you can!');
+    },delay);
+
+  } else if(state==='waiting'){
+    // Too early
+    clearTimeout(timer);
+    setBox('early','Too early!','Wait for the green screen');
+
+  } else if(state==='go'){
+    const t=Date.now()-startTime;
+    times.push(t);
+    const avg=Math.round(times.reduce((a,b)=>a+b,0)/times.length);
+    const bestT=Math.min(...times);
+    document.getElementById('sLast').textContent=t;
+    document.getElementById('sBest').textContent=bestT;
+    document.getElementById('sAvg').textContent=avg;
+    document.getElementById('sCount').textContent=times.length;
+    const rating=t<150?'🏆 Superhuman!':t<200?'⚡ Elite!':t<250?'🥇 Excellent!':t<350?'👍 Average':t<500?'📈 Below avg':'🐢 Slow';
+    setBox('result',`${t} ms`,`${rating} — Click to try again`);
+    renderHist();
+  }
+}
+
+function reset(){
+  clearTimeout(timer);
+  times=[];state='idle';
+  setBox('idle','Click to start','Test your reaction speed');
+  ['sLast','sBest','sAvg'].forEach(id=>document.getElementById(id).textContent='—');
+  document.getElementById('sCount').textContent='0';
+  document.getElementById('hist').innerHTML='<span style="color:var(--muted);font-size:.82rem">No attempts yet</span>';
+}
+
+function getColor(ms){
+  if(ms<150)return'#8b5cf6';
+  if(ms<200)return'#22c55e';
+  if(ms<250)return'#84cc16';
+  if(ms<350)return'#eab308';
+  if(ms<500)return'#f97316';
+  return'#ef4444';
+}
+
+function renderHist(){
+  const el=document.getElementById('hist');
+  el.innerHTML=times.map((t,i)=>`
+    <span style="background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:99px;padding:4px 12px;font-size:.8rem;color:${getColor(t)}">#${i+1}: ${t}ms</span>
+  `).join('');
+}
+</script>
+</body>
+</html>

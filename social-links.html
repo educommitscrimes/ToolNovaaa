@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Social Link Manager — ToolNova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+.social-row{display:grid;grid-template-columns:44px 120px 1fr;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.social-row:last-child{border-bottom:none}
+.social-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+.social-name{font-size:.85rem;font-weight:500;color:var(--muted)}
+.custom-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.custom-row input{flex:1}
+.custom-row .rm{background:transparent;border:1px solid var(--border);color:var(--muted);padding:9px 12px;border-radius:8px;cursor:pointer;transition:.2s;flex-shrink:0}
+.custom-row .rm:hover{border-color:rgba(239,68,68,.4);color:#fca5a5}
+</style>
+</head>
+<body>
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div></div>
+<div class="tool-page">
+  <nav class="topbar">
+    <a class="topbar-logo" href="index.html"><span>✦</span> ToolNova</a>
+    <span class="topbar-sep">/</span>
+    <span class="topbar-tool">Social Link Manager</span>
+    <a class="topbar-back" href="index.html">← All Tools</a>
+  </nav>
+  <div class="tool-content">
+    <div class="tool-hero">
+      <div class="tool-hero-icon">🌐</div>
+      <div><div class="tool-hero-title">Social Link Manager</div><div class="tool-hero-desc">Organise, save and export all your social media links</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Social Platforms</div>
+      <div id="socialLinks">
+        <div class="social-row"><div class="social-icon" style="background:#1da1f233">🐦</div><div class="social-name">Twitter / X</div><input type="url" class="sl-inp" data-key="twitter" placeholder="https://twitter.com/username"/></div>
+        <div class="social-row"><div class="social-icon" style="background:#e1306c22">📸</div><div class="social-name">Instagram</div><input type="url" class="sl-inp" data-key="instagram" placeholder="https://instagram.com/username"/></div>
+        <div class="social-row"><div class="social-icon" style="background:#0077b522">💼</div><div class="social-name">LinkedIn</div><input type="url" class="sl-inp" data-key="linkedin" placeholder="https://linkedin.com/in/username"/></div>
+        <div class="social-row"><div class="social-icon" style="background:#33333322">💻</div><div class="social-name">GitHub</div><input type="url" class="sl-inp" data-key="github" placeholder="https://github.com/username"/></div>
+        <div class="social-row"><div class="social-icon" style="background:#ff000022">▶️</div><div class="social-name">YouTube</div><input type="url" class="sl-inp" data-key="youtube" placeholder="https://youtube.com/@channel"/></div>
+        <div class="social-row"><div class="social-icon" style="background:#69c9d022">🎵</div><div class="social-name">TikTok</div><input type="url" class="sl-inp" data-key="tiktok" placeholder="https://tiktok.com/@username"/></div>
+        <div class="social-row"><div class="social-icon" style="background:#5865f222">🎮</div><div class="social-name">Discord</div><input type="url" class="sl-inp" data-key="discord" placeholder="https://discord.gg/invite"/></div>
+        <div class="social-row"><div class="social-icon" style="background:#ff450022">🎯</div><div class="social-name">Reddit</div><input type="url" class="sl-inp" data-key="reddit" placeholder="https://reddit.com/u/username"/></div>
+        <div class="social-row"><div class="social-icon" style="background:#1da1f222">🔵</div><div class="social-name">Facebook</div><input type="url" class="sl-inp" data-key="facebook" placeholder="https://facebook.com/username"/></div>
+        <div class="social-row"><div class="social-icon" style="background:#8b5cf622">🌐</div><div class="social-name">Website</div><input type="url" class="sl-inp" data-key="website" placeholder="https://yourwebsite.com"/></div>
+        <div class="social-row"><div class="social-icon" style="background:#1da1f222">✉️</div><div class="social-name">Email</div><input type="email" class="sl-inp" data-key="email" placeholder="you@example.com"/></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Custom Links</div>
+      <div id="customLinks"></div>
+      <div class="btns"><button class="btn btn-s btn-xs" onclick="addCustom()">+ Add custom link</button></div>
+    </div>
+
+    <div class="card">
+      <div class="btns">
+        <button class="btn btn-p" onclick="save()">💾 Save links</button>
+        <button class="btn btn-s" onclick="exportJSON()">Export JSON</button>
+        <button class="btn btn-s" onclick="exportText()">Export as text</button>
+        <button class="btn btn-s" onclick="clearAll()">🗑 Clear all</button>
+      </div>
+      <div id="saveStatus" style="margin-top:12px"></div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+const STORE='tn_social_links';
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+
+function load(){
+  const data=JSON.parse(localStorage.getItem(STORE)||'{}');
+  document.querySelectorAll('.sl-inp').forEach(inp=>{
+    if(data[inp.dataset.key])inp.value=data[inp.dataset.key];
+  });
+  if(data.custom){
+    data.custom.forEach(c=>addCustom(c.label,c.url));
+  }
+}
+
+function addCustom(label='',url=''){
+  const row=document.createElement('div');
+  row.className='custom-row';
+  row.innerHTML=`<input type="text" placeholder="Label" value="${label}"/><input type="url" placeholder="https://…" value="${url}"/><button class="rm" onclick="this.closest('.custom-row').remove()">✕</button>`;
+  document.getElementById('customLinks').appendChild(row);
+}
+
+function getData(){
+  const data={};
+  document.querySelectorAll('.sl-inp').forEach(inp=>{if(inp.value)data[inp.dataset.key]=inp.value;});
+  const custom=[...document.querySelectorAll('.custom-row')].map(r=>{
+    const ins=[...r.querySelectorAll('input')];
+    return{label:ins[0].value,url:ins[1].value};
+  }).filter(c=>c.label&&c.url);
+  if(custom.length)data.custom=custom;
+  return data;
+}
+
+function save(){
+  localStorage.setItem(STORE,JSON.stringify(getData()));
+  document.getElementById('saveStatus').innerHTML='<div class="out ok" style="margin:0">✓ Links saved successfully!</div>';
+  toast('Saved!');
+  setTimeout(()=>document.getElementById('saveStatus').innerHTML='',3000);
+}
+
+function exportJSON(){
+  const data=getData();
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='social-links.json';a.click();
+  toast('JSON downloaded!');
+}
+
+function exportText(){
+  const data=getData();
+  const lines=Object.entries(data).filter(([k])=>k!=='custom').map(([k,v])=>`${k}: ${v}`);
+  if(data.custom)data.custom.forEach(c=>lines.push(`${c.label}: ${c.url}`));
+  const blob=new Blob([lines.join('\n')],{type:'text/plain'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='social-links.txt';a.click();
+  toast('Text file downloaded!');
+}
+
+function clearAll(){
+  document.querySelectorAll('.sl-inp').forEach(inp=>inp.value='');
+  document.getElementById('customLinks').innerHTML='';
+  localStorage.removeItem(STORE);
+  toast('Cleared!');
+}
+
+load();
+</script>
+</body>
+</html>

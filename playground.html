@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HTML/CSS/JS Playground — ToolNova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+.pg-layout{display:grid;grid-template-columns:1fr 1fr;gap:16px;min-height:500px}
+.pg-pane{display:flex;flex-direction:column;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.pg-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.pg-tab{flex:1;padding:10px;border:none;background:transparent;color:var(--muted);cursor:pointer;font-family:var(--font);font-size:.82rem;font-weight:500;transition:.18s;border-bottom:2px solid transparent}
+.pg-tab.on{color:var(--purple);border-bottom-color:var(--purple);background:rgba(139,92,246,.06)}
+.pg-tab:hover:not(.on){color:var(--text);background:rgba(255,255,255,.04)}
+.pg-editor{flex:1;padding:0;border:none;background:transparent;color:var(--text);font-family:var(--mono);font-size:.84rem;resize:none;outline:none;padding:14px;line-height:1.6;min-height:300px}
+.pg-preview{flex:1;border:none;background:#fff;min-height:300px}
+.pg-preview-header{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.run-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;background:linear-gradient(135deg,var(--purple-d),var(--purple));color:#fff;border:none;padding:9px;border-radius:8px;font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;transition:.2s}
+.run-btn:hover{opacity:.9}
+@media(max-width:700px){.pg-layout{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div></div>
+<div class="tool-page">
+  <nav class="topbar">
+    <a class="topbar-logo" href="index.html"><span>✦</span> ToolNova</a>
+    <span class="topbar-sep">/</span>
+    <span class="topbar-tool">HTML/CSS/JS Playground</span>
+    <a class="topbar-back" href="index.html">← All Tools</a>
+  </nav>
+  <div class="tool-content" style="max-width:1100px">
+    <div class="tool-hero">
+      <div class="tool-hero-icon">🖥️</div>
+      <div><div class="tool-hero-title">HTML / CSS / JS Playground</div><div class="tool-hero-desc">Live-edit and instantly preview web code</div></div>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden">
+      <!-- Toolbar -->
+      <div style="display:flex;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border);align-items:center;flex-wrap:wrap">
+        <button class="run-btn" style="flex:0 0 auto;width:auto;padding:9px 20px" onclick="run()">▶ Run</button>
+        <button class="btn btn-s btn-xs" onclick="clearAll()">Clear</button>
+        <button class="btn btn-s btn-xs" onclick="loadExample('css')">CSS Example</button>
+        <button class="btn btn-s btn-xs" onclick="loadExample('js')">JS Example</button>
+        <button class="btn btn-s btn-xs" onclick="loadExample('canvas')">Canvas Example</button>
+        <div style="margin-left:auto">
+          <label class="chk"><input type="checkbox" id="autoRun" checked/> Auto-run</label>
+        </div>
+      </div>
+
+      <div class="pg-layout" style="padding:14px;gap:14px">
+        <!-- Editors -->
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <!-- HTML -->
+          <div class="pg-pane" style="flex:1">
+            <div class="pg-tabs">
+              <div class="pg-tab on" style="cursor:default">HTML</div>
+            </div>
+            <textarea class="pg-editor" id="edHtml" spellcheck="false" oninput="autorun()"></textarea>
+          </div>
+          <!-- CSS -->
+          <div class="pg-pane" style="flex:1">
+            <div class="pg-tabs">
+              <div class="pg-tab on" style="cursor:default">CSS</div>
+            </div>
+            <textarea class="pg-editor" id="edCss" spellcheck="false" oninput="autorun()"></textarea>
+          </div>
+          <!-- JS -->
+          <div class="pg-pane" style="flex:1">
+            <div class="pg-tabs">
+              <div class="pg-tab on" style="cursor:default">JavaScript</div>
+            </div>
+            <textarea class="pg-editor" id="edJs" spellcheck="false" oninput="autorun()"></textarea>
+          </div>
+        </div>
+
+        <!-- Preview -->
+        <div class="pg-pane">
+          <div class="pg-preview-header">
+            <span style="color:var(--muted);font-size:.8rem">Preview</span>
+            <div style="margin-left:auto;display:flex;gap:6px">
+              <div style="width:10px;height:10px;border-radius:50%;background:#ef4444"></div>
+              <div style="width:10px;height:10px;border-radius:50%;background:#eab308"></div>
+              <div style="width:10px;height:10px;border-radius:50%;background:#22c55e"></div>
+            </div>
+          </div>
+          <iframe class="pg-preview" id="preview" sandbox="allow-scripts"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+
+const EXAMPLES = {
+  default: {
+    html:`<div class="card">
+  <h1>Hello, ToolNova! 🚀</h1>
+  <p>Edit the code panels and click <strong>Run</strong></p>
+  <button onclick="greet()">Click me!</button>
+</div>`,
+    css:`body {
+  font-family: system-ui, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  margin: 0;
+  background: linear-gradient(135deg, #0b0b0f, #1a0a2e);
+}
+.card {
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(139,92,246,.3);
+  border-radius: 16px;
+  padding: 40px;
+  text-align: center;
+  color: white;
+}
+h1 { font-size: 2rem; margin-bottom: 12px; }
+p { color: #aaa; margin-bottom: 24px; }
+button {
+  background: #8b5cf6;
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 99px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+button:hover { background: #7c3aed; }`,
+    js:`function greet() {
+  alert('Hello from ToolNova! 👋');
+}`
+  },
+  css: {
+    html:`<div class="box">Hover me!</div>`,
+    css:`body{display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#0b0b0f}
+.box{
+  width:150px;height:150px;border-radius:16px;
+  background:linear-gradient(135deg,#8b5cf6,#ec4899);
+  display:flex;align-items:center;justify-content:center;
+  color:white;font-family:system-ui;font-weight:700;font-size:1.1rem;
+  cursor:pointer;
+  transition:transform .3s,box-shadow .3s;
+}
+.box:hover{transform:scale(1.1) rotate(5deg);box-shadow:0 20px 60px rgba(139,92,246,.5)}`,
+    js:``
+  },
+  js: {
+    html:`<canvas id="c" width="400" height="300"></canvas>`,
+    css:`body{margin:0;background:#0b0b0f;display:flex;align-items:center;justify-content:center;min-height:100vh}canvas{border-radius:12px}`,
+    js:`const c=document.getElementById('c'),ctx=c.getContext('2d');
+const balls=Array.from({length:15},()=>({
+  x:Math.random()*380+10,y:Math.random()*280+10,
+  vx:(Math.random()-.5)*4,vy:(Math.random()-.5)*4,
+  r:10+Math.random()*20,
+  color:\`hsl(\${Math.random()*360},80%,60%)\`
+}));
+function draw(){
+  ctx.fillStyle='rgba(11,11,15,.2)';ctx.fillRect(0,0,400,300);
+  balls.forEach(b=>{
+    b.x+=b.vx;b.y+=b.vy;
+    if(b.x<b.r||b.x>400-b.r)b.vx*=-1;
+    if(b.y<b.r||b.y>300-b.r)b.vy*=-1;
+    ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);
+    ctx.fillStyle=b.color;ctx.fill();
+  });
+  requestAnimationFrame(draw);
+}
+draw();`
+  },
+  canvas: {
+    html:`<canvas id="c" width="400" height="300"></canvas>`,
+    css:`body{margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh}canvas{border-radius:12px;border:1px solid rgba(255,255,255,.1)}`,
+    js:`const c=document.getElementById('c'),ctx=c.getContext('2d');
+let t=0;
+function draw(){
+  ctx.fillStyle='#0b0b0f';ctx.fillRect(0,0,400,300);
+  for(let i=0;i<200;i++){
+    const x=200+Math.sin(i*.3+t)*(100+Math.sin(i*.1+t*.7)*50);
+    const y=150+Math.cos(i*.3+t)*(80+Math.cos(i*.1+t*.5)*40);
+    const hue=(i*3+t*60)%360;
+    ctx.fillStyle=\`hsla(\${hue},90%,60%,.8)\`;
+    ctx.beginPath();ctx.arc(x,y,2,0,Math.PI*2);ctx.fill();
+  }
+  t+=.02;requestAnimationFrame(draw);
+}
+draw();`
+  }
+};
+
+function run(){
+  const html=document.getElementById('edHtml').value;
+  const css=document.getElementById('edCss').value;
+  const js=document.getElementById('edJs').value;
+  const src=`<!DOCTYPE html><html><head><style>${css}</style></head><body>${html}<script>${js}<\/script></body></html>`;
+  document.getElementById('preview').srcdoc=src;
+}
+
+let runTimer;
+function autorun(){if(document.getElementById('autoRun').checked){clearTimeout(runTimer);runTimer=setTimeout(run,600);}}
+
+function loadExample(name){
+  const e=EXAMPLES[name]||EXAMPLES.default;
+  document.getElementById('edHtml').value=e.html;
+  document.getElementById('edCss').value=e.css;
+  document.getElementById('edJs').value=e.js;
+  run();
+}
+function clearAll(){document.getElementById('edHtml').value='';document.getElementById('edCss').value='';document.getElementById('edJs').value='';run();}
+
+loadExample('default');
+</script>
+</body>
+</html>

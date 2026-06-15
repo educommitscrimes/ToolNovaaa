@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Username Generator — ToolNova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+.name-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.25);
+  border-radius:10px;padding:10px 16px;cursor:pointer;transition:.2s;
+  font-family:var(--mono);font-size:.88rem;color:#c4b5fd;
+}
+.name-pill:hover{background:rgba(139,92,246,.2);border-color:rgba(139,92,246,.5)}
+.style-btn{padding:8px 16px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:.82rem;transition:.2s}
+.style-btn.on{background:rgba(139,92,246,.2);border-color:var(--border-h);color:#c4b5fd}
+</style>
+</head>
+<body>
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div></div>
+<div class="tool-page">
+  <nav class="topbar">
+    <a class="topbar-logo" href="index.html"><span>✦</span> ToolNova</a>
+    <span class="topbar-sep">/</span>
+    <span class="topbar-tool">Username Generator</span>
+    <a class="topbar-back" href="index.html">← All Tools</a>
+  </nav>
+  <div class="tool-content">
+    <div class="tool-hero">
+      <div class="tool-hero-icon">👤</div>
+      <div><div class="tool-hero-title">Username Generator</div><div class="tool-hero-desc">Generate unique, cool usernames for any platform</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Style</div>
+      <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px">
+        <button class="style-btn on" data-s="combo"   onclick="setStyle('combo',this)">Adjective+Noun</button>
+        <button class="style-btn"    data-s="nounnum" onclick="setStyle('nounnum',this)">Noun+Number</button>
+        <button class="style-btn"    data-s="xstyle"  onclick="setStyle('xstyle',this)">xXNameXx</button>
+        <button class="style-btn"    data-s="under"   onclick="setStyle('under',this)">snake_case</button>
+        <button class="style-btn"    data-s="dots"    onclick="setStyle('dots',this)">dot.style</button>
+        <button class="style-btn"    data-s="caps"    onclick="setStyle('caps',this)">ALLCAPS</button>
+      </div>
+
+      <div class="row" style="align-items:flex-end">
+        <div class="fg">
+          <label class="lbl">Keyword (optional)</label>
+          <input type="text" id="keyword" placeholder="e.g. dragon, shadow, pixel…"/>
+        </div>
+        <div class="fg" style="flex:0 0 auto">
+          <label class="lbl">Count</label>
+          <input type="number" id="count" value="12" min="1" max="50"/>
+        </div>
+        <div class="fg" style="flex:0 0 auto">
+          <label class="lbl">&nbsp;</label>
+          <button class="btn btn-p" onclick="generate()" style="white-space:nowrap">Generate</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="outCard" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div class="card-title" style="margin:0">Results <span style="color:var(--purple)" id="outCount"></span></div>
+        <button class="copy-btn" onclick="copyAll()">📋 Copy all</button>
+      </div>
+      <div id="results" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Saved favourites</div>
+      <div id="saved" style="display:flex;flex-wrap:wrap;gap:8px">
+        <span style="color:var(--muted);font-size:.82rem">Click ★ on any username to save it</span>
+      </div>
+      <div class="btns" style="margin-top:10px">
+        <button class="btn btn-s btn-xs" onclick="clearSaved()">Clear saved</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800);}
+function copy(v){navigator.clipboard.writeText(v).then(()=>toast('Copied: '+v));}
+
+const ADJ=['Swift','Dark','Neon','Cyber','Shadow','Ultra','Hyper','Pixel','Frost','Storm','Epic','Blaze','Void','Turbo','Stealth','Ghost','Lunar','Solar','Iron','Mystic','Venom','Chaos','Rogue','Echo','Delta','Alpha','Omega','Zenith','Apex','Nova'];
+const NOU=['Wolf','Fox','Nova','Star','Blade','Ghost','Hawk','Titan','Viper','Phoenix','Dragon','Knight','Cobra','Raven','Lynx','Shark','Eagle','Bear','Tiger','Panda','Ninja','Wizard','Hunter','Ranger','Sniper','Reaper','Cipher','Phantom','Oracle','Vector'];
+
+let style='combo',saved=JSON.parse(localStorage.getItem('tn_usernames')||'[]');
+
+function setStyle(s,btn){
+  document.querySelectorAll('.style-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');style=s;
+}
+
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function num(min=10,max=9999){return Math.floor(Math.random()*(max-min))+min;}
+
+function makeName(kw){
+  const adj=kw||pick(ADJ);
+  const nou=kw?pick(NOU):pick(NOU);
+  const a=kw?kw:pick(ADJ);
+  const n=pick(NOU);
+  switch(style){
+    case'combo':   return a+n;
+    case'nounnum': return n+num(10,999);
+    case'xstyle':  return'x'+a+n+'x';
+    case'under':   return a.toLowerCase()+'_'+n.toLowerCase();
+    case'dots':    return a.toLowerCase()+'.'+n.toLowerCase();
+    case'caps':    return (a+n).toUpperCase();
+    default: return a+n;
+  }
+}
+
+function generate(){
+  const kw=document.getElementById('keyword').value.trim();
+  const count=Math.min(50,Math.max(1,parseInt(document.getElementById('count').value)||12));
+  const names=Array.from({length:count},()=>makeName(kw?kw:null));
+  document.getElementById('outCard').style.display='block';
+  document.getElementById('outCount').textContent=`(${names.length})`;
+  document.getElementById('results').innerHTML=names.map(n=>`
+    <div class="name-pill" onclick="copy('${n}')">
+      ${n}
+      <button style="background:transparent;border:none;cursor:pointer;color:${saved.includes(n)?'#facc15':'rgba(255,255,255,.3)'};font-size:.9rem;padding:0;transition:.2s" onclick="event.stopPropagation();toggleSave('${n}',this)" title="Save">★</button>
+    </div>
+  `).join('');
+}
+
+function toggleSave(name,btn){
+  if(saved.includes(name)){saved=saved.filter(s=>s!==name);btn.style.color='rgba(255,255,255,.3)';}
+  else{saved.push(name);btn.style.color='#facc15';}
+  localStorage.setItem('tn_usernames',JSON.stringify(saved));
+  renderSaved();
+}
+
+function renderSaved(){
+  const el=document.getElementById('saved');
+  if(!saved.length){el.innerHTML='<span style="color:var(--muted);font-size:.82rem">Click ★ on any username to save it</span>';return;}
+  el.innerHTML=saved.map(n=>`<div class="name-pill" onclick="copy('${n}')">${n} <button style="background:transparent;border:none;cursor:pointer;color:#facc15;font-size:.9rem;padding:0" onclick="event.stopPropagation();removeSaved('${n}')">★</button></div>`).join('');
+}
+
+function removeSaved(name){saved=saved.filter(s=>s!==name);localStorage.setItem('tn_usernames',JSON.stringify(saved));renderSaved();generate();}
+function clearSaved(){saved=[];localStorage.removeItem('tn_usernames');renderSaved();}
+function copyAll(){
+  const names=[...document.querySelectorAll('.name-pill')].map(el=>el.textContent.trim().replace('★','').trim());
+  navigator.clipboard.writeText(names.join('\n')).then(()=>toast('All names copied!'));
+}
+
+renderSaved();
+generate();
+</script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Profile Card Generator — ToolNova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+.card-preview{
+  background:var(--card-bg,linear-gradient(135deg,#13131c,#1a0a2e));
+  border:1px solid var(--card-border,rgba(139,92,246,.3));
+  border-radius:20px;padding:32px 24px;text-align:center;
+  max-width:320px;margin:0 auto;
+  font-family:system-ui,sans-serif;
+}
+.card-avatar{
+  width:80px;height:80px;border-radius:50%;
+  background:var(--av-bg,rgba(139,92,246,.2));
+  border:3px solid var(--av-border,#8b5cf6);
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.2rem;margin:0 auto 16px;
+}
+.card-name{font-size:1.3rem;font-weight:700;color:var(--name-color,#f0f0f8);margin-bottom:4px}
+.card-role{font-size:.85rem;font-weight:500;margin-bottom:10px}
+.card-bio{font-size:.82rem;color:var(--bio-color,#8888aa);line-height:1.6;margin-bottom:16px}
+.card-tags{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:16px}
+.card-tag{padding:4px 12px;border-radius:99px;font-size:.75rem;font-weight:500}
+.card-stats{display:flex;gap:16px;justify-content:center;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)}
+.card-stat-val{font-size:1.1rem;font-weight:700}
+.card-stat-key{font-size:.7rem;opacity:.6;margin-top:1px}
+.layout-btn{padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:.8rem;transition:.2s}
+.layout-btn.on{background:rgba(139,92,246,.2);border-color:var(--border-h);color:#c4b5fd}
+</style>
+</head>
+<body>
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div></div>
+<div class="tool-page">
+  <nav class="topbar">
+    <a class="topbar-logo" href="index.html"><span>✦</span> ToolNova</a>
+    <span class="topbar-sep">/</span>
+    <span class="topbar-tool">Profile Card Generator</span>
+    <a class="topbar-back" href="index.html">← All Tools</a>
+  </nav>
+  <div class="tool-content" style="max-width:900px">
+    <div class="tool-hero">
+      <div class="tool-hero-icon">🪪</div>
+      <div><div class="tool-hero-title">Profile Card Generator</div><div class="tool-hero-desc">Design a beautiful shareable profile card</div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <!-- Editor -->
+      <div>
+        <div class="card">
+          <div class="card-title">Identity</div>
+          <div class="fg"><label class="lbl">Display name</label><input type="text" id="pcName" value="Alex Nova" oninput="preview()"/></div>
+          <div class="fg"><label class="lbl">Role / title</label><input type="text" id="pcRole" value="Full-Stack Developer" oninput="preview()"/></div>
+          <div class="fg"><label class="lbl">Bio</label><textarea id="pcBio" rows="2" oninput="preview()" style="font-family:var(--font);font-size:.88rem">Building cool things on the internet ✨ Open source enthusiast.</textarea></div>
+          <div class="row">
+            <div class="fg"><label class="lbl">Avatar emoji</label><input type="text" id="pcEmoji" value="🚀" maxlength="2" oninput="preview()"/></div>
+            <div class="fg"><label class="lbl">Accent color</label><input type="color" id="pcColor" value="#8b5cf6" oninput="preview()"/></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Tags / Skills</div>
+          <div class="fg"><label class="lbl">Tags (comma-separated)</label><input type="text" id="pcTags" value="JavaScript, React, Node.js, CSS" oninput="preview()"/></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Stats (optional)</div>
+          <div class="row">
+            <div class="fg"><label class="lbl">Label 1</label><input type="text" id="s1k" value="Projects" oninput="preview()"/></div>
+            <div class="fg"><label class="lbl">Value</label><input type="text" id="s1v" value="42" oninput="preview()"/></div>
+          </div>
+          <div class="row">
+            <div class="fg"><label class="lbl">Label 2</label><input type="text" id="s2k" value="Stars" oninput="preview()"/></div>
+            <div class="fg"><label class="lbl">Value</label><input type="text" id="s2v" value="1.2k" oninput="preview()"/></div>
+          </div>
+          <div class="row">
+            <div class="fg"><label class="lbl">Label 3</label><input type="text" id="s3k" value="Followers" oninput="preview()"/></div>
+            <div class="fg"><label class="lbl">Value</label><input type="text" id="s3v" value="500" oninput="preview()"/></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Theme</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            <button class="layout-btn on" data-th="purple" onclick="setTheme('purple',this)">Purple</button>
+            <button class="layout-btn" data-th="blue" onclick="setTheme('blue',this)">Blue</button>
+            <button class="layout-btn" data-th="green" onclick="setTheme('green',this)">Green</button>
+            <button class="layout-btn" data-th="rose" onclick="setTheme('rose',this)">Rose</button>
+            <button class="layout-btn" data-th="dark" onclick="setTheme('dark',this)">Dark</button>
+            <button class="layout-btn" data-th="light" onclick="setTheme('light',this)">Light</button>
+          </div>
+        </div>
+
+        <div class="btns">
+          <button class="btn btn-p" onclick="downloadCard()">⬇ Download HTML</button>
+          <button class="copy-btn" onclick="copyCardCode()">📋 Copy HTML</button>
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div>
+        <div class="card">
+          <div class="card-title">Live Preview</div>
+          <div id="cardPreview"></div>
+        </div>
+        <div class="card" style="margin-top:8px">
+          <div class="card-title">Share tip</div>
+          <p style="color:var(--muted);font-size:.82rem;line-height:1.6">Take a screenshot of the preview above, or download the HTML and open it in your browser to share it as an image or page link.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+let cardTheme='purple';
+const THEMES={
+  purple:{bg:'linear-gradient(135deg,#13131c,#1a0a2e)',border:'rgba(139,92,246,.3)',avBg:'rgba(139,92,246,.2)',avBorder:'#8b5cf6',nameColor:'#f0f0f8',roleColor:'#c4b5fd',bioColor:'#8888aa',tagBg:'rgba(139,92,246,.15)',tagColor:'#c4b5fd',statColor:'#f0f0f8'},
+  blue:  {bg:'linear-gradient(135deg,#0c1220,#0f2a4a)',border:'rgba(59,130,246,.3)',avBg:'rgba(59,130,246,.2)',avBorder:'#3b82f6',nameColor:'#f0f8ff',roleColor:'#93c5fd',bioColor:'#6688aa',tagBg:'rgba(59,130,246,.15)',tagColor:'#93c5fd',statColor:'#f0f8ff'},
+  green: {bg:'linear-gradient(135deg,#0a1a10,#0d2e1a)',border:'rgba(34,197,94,.3)',avBg:'rgba(34,197,94,.2)',avBorder:'#22c55e',nameColor:'#f0fff4',roleColor:'#86efac',bioColor:'#668866',tagBg:'rgba(34,197,94,.15)',tagColor:'#86efac',statColor:'#f0fff4'},
+  rose:  {bg:'linear-gradient(135deg,#1c0a12,#2e0a1a)',border:'rgba(244,63,94,.3)',avBg:'rgba(244,63,94,.2)',avBorder:'#f43f5e',nameColor:'#fff0f4',roleColor:'#fda4af',bioColor:'#aa6688',tagBg:'rgba(244,63,94,.15)',tagColor:'#fda4af',statColor:'#fff0f4'},
+  dark:  {bg:'linear-gradient(135deg,#0a0a0a,#1a1a1a)',border:'rgba(255,255,255,.1)',avBg:'rgba(255,255,255,.08)',avBorder:'#555',nameColor:'#ffffff',roleColor:'#aaa',bioColor:'#777',tagBg:'rgba(255,255,255,.07)',tagColor:'#bbb',statColor:'#fff'},
+  light: {bg:'linear-gradient(135deg,#f8fafc,#e2e8f0)',border:'rgba(0,0,0,.1)',avBg:'rgba(0,0,0,.06)',avBorder:'#94a3b8',nameColor:'#1e293b',roleColor:'#64748b',bioColor:'#94a3b8',tagBg:'rgba(0,0,0,.06)',tagColor:'#475569',statColor:'#1e293b'},
+};
+
+function setTheme(t,btn){
+  cardTheme=t;
+  document.querySelectorAll('.layout-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  preview();
+}
+
+function v(id){return document.getElementById(id).value;}
+
+function preview(){
+  const th=THEMES[cardTheme];
+  const color=v('pcColor');
+  const tags=v('pcTags').split(',').map(t=>t.trim()).filter(Boolean);
+  const stats=[[v('s1v'),v('s1k')],[v('s2v'),v('s2k')],[v('s3v'),v('s3k')]].filter(s=>s[0]&&s[1]);
+
+  document.getElementById('cardPreview').innerHTML=`
+    <div style="background:${th.bg};border:1px solid ${th.border};border-radius:20px;padding:30px 22px;text-align:center;font-family:system-ui,sans-serif;max-width:300px;margin:0 auto">
+      <div style="width:76px;height:76px;border-radius:50%;background:${th.avBg};border:3px solid ${color};display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 14px">${v('pcEmoji')}</div>
+      <div style="font-size:1.25rem;font-weight:700;color:${th.nameColor};margin-bottom:4px">${v('pcName')||'Your Name'}</div>
+      <div style="font-size:.82rem;font-weight:600;color:${color};margin-bottom:10px">${v('pcRole')||'Your Role'}</div>
+      <div style="font-size:.79rem;color:${th.bioColor};line-height:1.6;margin-bottom:14px">${v('pcBio')||''}</div>
+      ${tags.length?`<div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-bottom:14px">${tags.map(t=>`<span style="padding:3px 10px;border-radius:99px;background:${th.tagBg};border:1px solid ${color}44;color:${th.tagColor};font-size:.72rem">${t}</span>`).join('')}</div>`:''}
+      ${stats.length?`<div style="display:flex;gap:14px;justify-content:center;padding-top:12px;border-top:1px solid rgba(255,255,255,.07)">${stats.map(([v2,k])=>`<div style="text-align:center"><div style="font-size:1.05rem;font-weight:700;color:${th.statColor}">${v2}</div><div style="font-size:.68rem;color:${th.bioColor};margin-top:2px">${k}</div></div>`).join('')}</div>`:''}
+    </div>
+  `;
+}
+
+function getCardHTML(){
+  const th=THEMES[cardTheme];
+  const color=v('pcColor');
+  const tags=v('pcTags').split(',').map(t=>t.trim()).filter(Boolean);
+  const stats=[[v('s1v'),v('s1k')],[v('s2v'),v('s2k')],[v('s3v'),v('s3k')]].filter(s=>s[0]&&s[1]);
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${v('pcName')} — Profile Card</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;background:${th.bg}}.card{background:${th.bg};border:1px solid ${th.border};border-radius:20px;padding:36px 28px;text-align:center;max-width:340px;width:100%;box-shadow:0 24px 80px rgba(0,0,0,.5)}.avatar{width:84px;height:84px;border-radius:50%;background:${th.avBg};border:3px solid ${color};display:flex;align-items:center;justify-content:center;font-size:2.4rem;margin:0 auto 18px}.name{font-size:1.4rem;font-weight:700;color:${th.nameColor};margin-bottom:5px}.role{font-size:.85rem;font-weight:600;color:${color};margin-bottom:12px}.bio{font-size:.82rem;color:${th.bioColor};line-height:1.6;margin-bottom:16px}.tags{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:16px}.tag{padding:4px 12px;border-radius:99px;background:${th.tagBg};border:1px solid ${color}44;color:${th.tagColor};font-size:.75rem}.stats{display:flex;gap:16px;justify-content:center;padding-top:14px;border-top:1px solid rgba(255,255,255,.07)}.stat-val{font-size:1.1rem;font-weight:700;color:${th.statColor}}.stat-key{font-size:.7rem;color:${th.bioColor};margin-top:2px}</style></head>
+<body><div class="card">
+  <div class="avatar">${v('pcEmoji')}</div>
+  <div class="name">${v('pcName')}</div>
+  <div class="role">${v('pcRole')}</div>
+  ${v('pcBio')?`<div class="bio">${v('pcBio')}</div>`:''}
+  ${tags.length?`<div class="tags">${tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`:''}
+  ${stats.length?`<div class="stats">${stats.map(([val,key])=>`<div><div class="stat-val">${val}</div><div class="stat-key">${key}</div></div>`).join('')}</div>`:''}
+</div></body></html>`;
+}
+
+function downloadCard(){
+  const blob=new Blob([getCardHTML()],{type:'text/html'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='profile-card.html';a.click();
+  toast('Card downloaded!');
+}
+
+function copyCardCode(){
+  navigator.clipboard.writeText(getCardHTML()).then(()=>toast('HTML copied!'));
+}
+
+preview();
+</script>
+</body>
+</html>

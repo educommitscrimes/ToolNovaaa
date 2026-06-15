@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Regex Tester — ToolNova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+.highlight{background:rgba(139,92,246,.3);border-radius:2px;color:#e9d5ff}
+.match-item{background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.2);border-radius:8px;padding:8px 12px;font-family:var(--mono);font-size:.82rem;margin-bottom:6px}
+.match-index{color:var(--muted);font-size:.73rem;margin-bottom:3px}
+.match-val{color:#c4b5fd}
+.flag-btn{padding:7px 14px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:.82rem;font-family:var(--font);transition:.2s}
+.flag-btn.on{background:rgba(139,92,246,.18);border-color:var(--border-h);color:#c4b5fd}
+</style>
+</head>
+<body>
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div></div>
+<div class="tool-page">
+  <nav class="topbar">
+    <a class="topbar-logo" href="index.html"><span>✦</span> ToolNova</a>
+    <span class="topbar-sep">/</span>
+    <span class="topbar-tool">Regex Tester</span>
+    <a class="topbar-back" href="index.html">← All Tools</a>
+  </nav>
+  <div class="tool-content">
+    <div class="tool-hero">
+      <div class="tool-hero-icon">🔎</div>
+      <div><div class="tool-hero-title">Regex Tester</div><div class="tool-hero-desc">Test and debug regular expressions with live highlighting</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Pattern</div>
+      <div class="row" style="align-items:flex-end">
+        <div class="fg" style="flex:1">
+          <label class="lbl">Regular expression</label>
+          <input type="text" id="rxPat" placeholder="e.g. \d+ or [A-Z][a-z]+" oninput="run()" style="font-family:var(--mono)"/>
+        </div>
+        <div class="fg" style="flex:0 0 auto">
+          <label class="lbl">Flags</label>
+          <div style="display:flex;gap:5px;flex-wrap:wrap">
+            <button class="flag-btn on" data-f="g" onclick="toggleFlag(this)">g</button>
+            <button class="flag-btn" data-f="i" onclick="toggleFlag(this)">i</button>
+            <button class="flag-btn" data-f="m" onclick="toggleFlag(this)">m</button>
+            <button class="flag-btn" data-f="s" onclick="toggleFlag(this)">s</button>
+          </div>
+        </div>
+      </div>
+      <div id="rxError" style="margin-top:8px"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Test String</div>
+      <div class="fg">
+        <textarea id="rxTest" rows="6" oninput="run()" placeholder="Enter text to test against…">The price is $42.00 and the order ID is A1B2C3.
+Contact us at hello@example.com or +1-555-0123.</textarea>
+      </div>
+      <div style="margin-top:10px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:.85rem;line-height:1.8;word-break:break-word" id="highlighted"></div>
+    </div>
+
+    <div class="card" id="matchCard">
+      <div class="card-title">Matches <span id="matchCount" style="color:var(--purple)"></span></div>
+      <div id="matches"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Common Patterns</div>
+      <div style="display:flex;flex-wrap:wrap;gap:7px">
+        <button class="btn btn-s btn-xs" onclick="usePattern('[\\w.-]+@[\\w.-]+\\.\\w+','gi')">Email</button>
+        <button class="btn btn-s btn-xs" onclick="usePattern('https?:\\/\\/[^\\s]+','gi')">URL</button>
+        <button class="btn btn-s btn-xs" onclick="usePattern('\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}','g')">IP Address</button>
+        <button class="btn btn-s btn-xs" onclick="usePattern('#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3}','gi')">Hex Color</button>
+        <button class="btn btn-s btn-xs" onclick="usePattern('\\b\\d{4}-\\d{2}-\\d{2}\\b','g')">Date YYYY-MM-DD</button>
+        <button class="btn btn-s btn-xs" onclick="usePattern('[+]?\\d[\\d\\s()-]{7,}\\d','g')">Phone</button>
+        <button class="btn btn-s btn-xs" onclick="usePattern('\\b[A-Z][a-z]+\\b','g')">Capitalized words</button>
+        <button class="btn btn-s btn-xs" onclick="usePattern('\\$[\\d,]+\\.?\\d*','g')">Currency</button>
+        <button class="btn btn-s btn-xs" onclick="usePattern('\\b\\d+\\b','g')">Numbers only</button>
+        <button class="btn btn-s btn-xs" onclick="usePattern('[^\\x00-\\x7F]','g')">Non-ASCII</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+
+function getFlags(){return [...document.querySelectorAll('.flag-btn.on')].map(b=>b.dataset.f).join('');}
+function toggleFlag(btn){btn.classList.toggle('on');run();}
+function usePattern(pat,flags){
+  document.getElementById('rxPat').value=pat;
+  const fs=flags||'g';
+  document.querySelectorAll('.flag-btn').forEach(b=>b.classList.toggle('on',fs.includes(b.dataset.f)));
+  run();
+}
+
+function run(){
+  const pat=document.getElementById('rxPat').value;
+  const test=document.getElementById('rxTest').value;
+  const errEl=document.getElementById('rxError');
+  const matchesEl=document.getElementById('matches');
+  const countEl=document.getElementById('matchCount');
+  const hlEl=document.getElementById('highlighted');
+
+  if(!pat){errEl.innerHTML='';matchesEl.innerHTML='';countEl.textContent='';hlEl.textContent=test;return;}
+
+  let rx;
+  try{rx=new RegExp(pat,getFlags());errEl.innerHTML='';}
+  catch(e){errEl.innerHTML=`<div class="out err" style="margin:0">Invalid regex: ${e.message}</div>`;matchesEl.innerHTML='';countEl.textContent='';hlEl.textContent=test;return;}
+
+  const matches=[...test.matchAll(new RegExp(pat,getFlags().includes('g')?getFlags():getFlags()+'g'))];
+  countEl.textContent=matches.length?`(${matches.length} match${matches.length!==1?'es':''})`:matches.length===0?'(no matches)':'';
+
+  // Highlight
+  let hl=test,offset=0;
+  const parts=[];let last=0;
+  for(const m of matches){
+    parts.push(esc(test.slice(last,m.index)));
+    parts.push(`<mark class="highlight">${esc(m[0])}</mark>`);
+    last=m.index+m[0].length;
+  }
+  parts.push(esc(test.slice(last)));
+  hlEl.innerHTML=parts.join('').replace(/\n/g,'<br>');
+
+  if(!matches.length){
+    matchesEl.innerHTML='<div style="color:var(--muted);font-size:.85rem">No matches found</div>';
+    return;
+  }
+  matchesEl.innerHTML=matches.map((m,i)=>`
+    <div class="match-item">
+      <div class="match-index">Match ${i+1} · index ${m.index}–${m.index+m[0].length}</div>
+      <div class="match-val">${esc(m[0])}</div>
+      ${m.length>1?'<div style="margin-top:6px;color:var(--muted);font-size:.75rem">Groups: '+m.slice(1).map((g,j)=>`<span style="color:#c4b5fd">$${j+1}=${g??'undefined'}</span>`).join(' · ')+'</div>':''}
+    </div>
+  `).join('');
+}
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+run();
+</script>
+</body>
+</html>

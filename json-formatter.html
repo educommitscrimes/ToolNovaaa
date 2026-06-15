@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>JSON Formatter — ToolNova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div></div>
+<div class="tool-page">
+  <nav class="topbar">
+    <a class="topbar-logo" href="index.html"><span>✦</span> ToolNova</a>
+    <span class="topbar-sep">/</span>
+    <span class="topbar-tool">JSON Formatter</span>
+    <a class="topbar-back" href="index.html">← All Tools</a>
+  </nav>
+  <div class="tool-content">
+    <div class="tool-hero">
+      <div class="tool-hero-icon">📋</div>
+      <div><div class="tool-hero-title">JSON Formatter</div><div class="tool-hero-desc">Beautify, minify and validate JSON instantly</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Input</div>
+      <div class="fg">
+        <textarea id="jsonIn" rows="10" placeholder='Paste your JSON here…
+{"name":"ToolNova","tools":20,"free":true}'></textarea>
+      </div>
+      <div class="btns">
+        <button class="btn btn-p"  onclick="format()">✨ Beautify</button>
+        <button class="btn btn-s"  onclick="minify()">⚡ Minify</button>
+        <button class="btn btn-s"  onclick="validate()">✅ Validate</button>
+        <button class="btn btn-s"  onclick="swap()">⇅ Swap</button>
+        <button class="btn btn-s"  onclick="clearAll()">🗑 Clear</button>
+      </div>
+      <div id="status" style="margin-top:12px"></div>
+    </div>
+
+    <div class="card" id="outCard" style="display:none">
+      <div class="card-title">Output</div>
+      <div id="statsRow" style="margin-bottom:14px"></div>
+      <div class="fg">
+        <textarea id="jsonOut" rows="10" readonly></textarea>
+      </div>
+      <div class="btns">
+        <button class="copy-btn" onclick="copyOut()">📋 Copy output</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+function setStatus(msg,type){document.getElementById('status').innerHTML=`<div class="out ${type}">${msg}</div>`;}
+function showOut(val){document.getElementById('jsonOut').value=val;document.getElementById('outCard').style.display='block';}
+function copyOut(){navigator.clipboard.writeText(document.getElementById('jsonOut').value).then(()=>toast('Copied!'));}
+
+function countKeys(o,n=0){if(o&&typeof o==='object'){const k=Object.keys(o);n+=k.length;k.forEach(key=>n=countKeys(o[key],n));}return n;}
+function maxDepth(o,d=0){if(!o||typeof o!=='object')return d;const vals=Object.values(o);return vals.length?Math.max(...vals.map(v=>maxDepth(v,d+1))):d;}
+
+function showStats(parsed){
+  const keys=countKeys(parsed),depth=maxDepth(parsed);
+  document.getElementById('statsRow').innerHTML=`
+    <div class="stats">
+      <div class="stat"><div class="stat-val">${keys}</div><div class="stat-key">Keys</div></div>
+      <div class="stat"><div class="stat-val">${depth}</div><div class="stat-key">Depth</div></div>
+      <div class="stat"><div class="stat-val">${Array.isArray(parsed)?parsed.length:'—'}</div><div class="stat-key">Items</div></div>
+      <div class="stat"><div class="stat-val">${typeof parsed}</div><div class="stat-key">Root type</div></div>
+    </div>`;
+}
+
+function getIn(){return document.getElementById('jsonIn').value.trim();}
+
+function format(){
+  const raw=getIn(); if(!raw){toast('Paste some JSON first');return;}
+  try{const p=JSON.parse(raw);showOut(JSON.stringify(p,null,2));setStatus('✓ Valid JSON — formatted successfully','ok');showStats(p);}
+  catch(e){setStatus('✗ '+e.message,'err');document.getElementById('outCard').style.display='none';}
+}
+function minify(){
+  const raw=getIn(); if(!raw){toast('Paste some JSON first');return;}
+  try{const p=JSON.parse(raw);showOut(JSON.stringify(p));setStatus('✓ JSON minified','ok');showStats(p);}
+  catch(e){setStatus('✗ '+e.message,'err');}
+}
+function validate(){
+  const raw=getIn(); if(!raw){toast('Paste some JSON first');return;}
+  try{const p=JSON.parse(raw);setStatus('✓ Valid JSON!','ok');showStats(p);}
+  catch(e){setStatus('✗ Invalid JSON: '+e.message,'err');}
+}
+function swap(){
+  const out=document.getElementById('jsonOut').value;
+  if(!out){toast('No output to swap');return;}
+  document.getElementById('jsonIn').value=out;
+  document.getElementById('jsonOut').value='';
+  document.getElementById('outCard').style.display='none';
+  document.getElementById('status').innerHTML='';
+  toast('Output moved to input');
+}
+function clearAll(){
+  document.getElementById('jsonIn').value='';
+  document.getElementById('jsonOut').value='';
+  document.getElementById('status').innerHTML='';
+  document.getElementById('outCard').style.display='none';
+}
+</script>
+</body>
+</html>

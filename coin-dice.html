@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Coin Flip & Dice Roller — ToolNova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+.big-btn{width:100%;padding:40px 20px;border-radius:14px;border:2px dashed rgba(139,92,246,.35);background:rgba(139,92,246,.07);color:var(--purple);font-family:var(--display);font-size:1.1rem;font-weight:600;cursor:pointer;transition:.2s;margin-bottom:14px}
+.big-btn:hover{background:rgba(139,92,246,.15);border-style:solid}
+.result-big{text-align:center;font-family:var(--display);font-size:3rem;font-weight:700;padding:20px;color:var(--text)}
+.history-pill{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:99px;padding:4px 12px;font-size:.8rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div></div>
+<div class="tool-page">
+  <nav class="topbar">
+    <a class="topbar-logo" href="index.html"><span>✦</span> ToolNova</a>
+    <span class="topbar-sep">/</span>
+    <span class="topbar-tool">Coin Flip & Dice Roller</span>
+    <a class="topbar-back" href="index.html">← All Tools</a>
+  </nav>
+  <div class="tool-content">
+    <div class="tool-hero">
+      <div class="tool-hero-icon">🪙</div>
+      <div><div class="tool-hero-title">Coin Flip & Dice Roller</div><div class="tool-hero-desc">Flip a coin or roll any dice — fully random</div></div>
+    </div>
+
+    <!-- Coin -->
+    <div class="card">
+      <div class="card-title">🪙 Coin Flip</div>
+      <button class="big-btn" onclick="flipCoin()">Click to flip coin</button>
+      <div class="result-big" id="coinResult">—</div>
+      <div class="fg"><label class="lbl">History</label><div id="coinHistory" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px"></div></div>
+      <div class="btns"><button class="btn btn-s btn-xs" onclick="resetCoin()">Reset history</button></div>
+    </div>
+
+    <!-- Dice -->
+    <div class="card">
+      <div class="card-title">🎲 Dice Roller</div>
+      <div class="row">
+        <div class="fg">
+          <label class="lbl">Dice type</label>
+          <select id="diceType">
+            <option value="4">D4</option>
+            <option value="6" selected>D6</option>
+            <option value="8">D8</option>
+            <option value="10">D10</option>
+            <option value="12">D12</option>
+            <option value="20">D20</option>
+            <option value="100">D100</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="lbl">Number of dice</label>
+          <input type="number" id="diceCount" value="1" min="1" max="20"/>
+        </div>
+      </div>
+      <button class="big-btn" onclick="rollDice()">Click to roll dice</button>
+      <div class="result-big" id="diceResult">—</div>
+      <div id="diceBreakdown" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:12px"></div>
+      <div class="fg"><label class="lbl">History</label><div id="diceHistory" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px"></div></div>
+      <div class="btns"><button class="btn btn-s btn-xs" onclick="resetDice()">Reset history</button></div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+
+let coinHistory=[], diceHistory=[];
+
+function flipCoin(){
+  const heads=Math.random()<.5;
+  const result=heads?'🌟 Heads':'🌑 Tails';
+  document.getElementById('coinResult').textContent=result;
+  coinHistory.unshift(heads?'H':'T');
+  if(coinHistory.length>20)coinHistory.pop();
+  renderCoinHistory();
+}
+
+function renderCoinHistory(){
+  const heads=coinHistory.filter(c=>c==='H').length;
+  document.getElementById('coinHistory').innerHTML=coinHistory.map(c=>`
+    <span class="history-pill" style="color:${c==='H'?'#a78bfa':'var(--muted)'}">${c==='H'?'Heads':'Tails'}</span>
+  `).join('')+(coinHistory.length?`<span class="history-pill" style="color:var(--purple)">${heads}H / ${coinHistory.length-heads}T</span>`:'');
+}
+
+function resetCoin(){coinHistory=[];document.getElementById('coinResult').textContent='—';renderCoinHistory();}
+
+function rollDice(){
+  const sides=+document.getElementById('diceType').value;
+  const count=Math.min(20,Math.max(1,+document.getElementById('diceCount').value||1));
+  const rolls=Array.from({length:count},()=>Math.floor(Math.random()*sides)+1);
+  const total=rolls.reduce((a,b)=>a+b,0);
+
+  document.getElementById('diceResult').textContent=count>1?`Total: ${total}`:rolls[0];
+
+  if(count>1){
+    document.getElementById('diceBreakdown').innerHTML=rolls.map(r=>`
+      <div style="width:48px;height:48px;border-radius:10px;background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.25);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:1.2rem;font-weight:700;color:var(--purple)">${r}</div>
+    `).join('');
+  } else {
+    document.getElementById('diceBreakdown').innerHTML='';
+  }
+
+  const label=count>1?`${count}d${sides}=${total} (${rolls.join('+')})` : `d${sides}=${rolls[0]}`;
+  diceHistory.unshift(label);
+  if(diceHistory.length>10)diceHistory.pop();
+  renderDiceHistory();
+}
+
+function renderDiceHistory(){
+  document.getElementById('diceHistory').innerHTML=diceHistory.map(h=>`<span class="history-pill">${h}</span>`).join('');
+}
+
+function resetDice(){diceHistory=[];document.getElementById('diceResult').textContent='—';document.getElementById('diceBreakdown').innerHTML='';renderDiceHistory();}
+</script>
+</body>
+</html>

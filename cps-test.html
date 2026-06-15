@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>CPS Test — ToolNova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+.cps-arena {
+  width:100%;height:200px;border-radius:14px;
+  border:2px dashed rgba(139,92,246,.35);
+  background:rgba(139,92,246,.07);
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;
+  cursor:pointer;transition:.2s;user-select:none;
+}
+.cps-arena:hover{background:rgba(139,92,246,.12);border-color:rgba(139,92,246,.55)}
+.cps-arena.active{border-style:solid;background:rgba(139,92,246,.16)}
+.cps-arena.done{border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.07)}
+.dur-btn{padding:7px 18px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:.82rem;transition:.2s}
+.dur-btn.on{background:rgba(139,92,246,.2);border-color:var(--border-h);color:#c4b5fd}
+.hist-pill{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:99px;padding:5px 12px;font-size:.8rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div></div>
+<div class="tool-page">
+  <nav class="topbar">
+    <a class="topbar-logo" href="index.html"><span>✦</span> ToolNova</a>
+    <span class="topbar-sep">/</span>
+    <span class="topbar-tool">CPS Test</span>
+    <a class="topbar-back" href="index.html">← All Tools</a>
+  </nav>
+  <div class="tool-content">
+    <div class="tool-hero">
+      <div class="tool-hero-icon">🖱️</div>
+      <div><div class="tool-hero-title">CPS Test</div><div class="tool-hero-desc">Measure your clicks per second — how fast can you click?</div></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+        <div style="display:flex;gap:6px">
+          <button class="dur-btn" data-d="1" onclick="setDur(1,this)">1s</button>
+          <button class="dur-btn on" data-d="5" onclick="setDur(5,this)">5s</button>
+          <button class="dur-btn" data-d="10" onclick="setDur(10,this)">10s</button>
+          <button class="dur-btn" data-d="15" onclick="setDur(15,this)">15s</button>
+        </div>
+        <div style="color:var(--muted);font-size:.82rem">Best: <span id="bestCps" style="color:var(--purple);font-weight:700">—</span></div>
+      </div>
+
+      <div class="stats" style="margin-bottom:16px">
+        <div class="stat"><div class="stat-val" id="sCps">0.0</div><div class="stat-key">CPS</div></div>
+        <div class="stat"><div class="stat-val" id="sClicks">0</div><div class="stat-key">Clicks</div></div>
+        <div class="stat"><div class="stat-val" id="sTime">5.0</div><div class="stat-key">Seconds left</div></div>
+        <div class="stat"><div class="stat-val" id="sMax">0.0</div><div class="stat-key">Peak CPS</div></div>
+      </div>
+
+      <div class="cps-arena" id="arena" onclick="handleClick()">
+        <div style="font-family:var(--display);font-size:1.15rem;font-weight:600;color:var(--purple)" id="arenaText">Click here to start!</div>
+        <div style="color:var(--muted);font-size:.82rem" id="arenaSub">Click as fast as you can</div>
+      </div>
+
+      <div class="btns" style="margin-top:12px">
+        <button class="btn btn-s" onclick="reset()">Reset</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">History</div>
+      <div id="history" style="display:flex;flex-wrap:wrap;gap:7px">
+        <span style="color:var(--muted);font-size:.82rem">No sessions yet</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">CPS Rating Guide</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:center;gap:10px"><div style="width:10px;height:10px;border-radius:50%;background:#94a3b8"></div><span style="color:var(--muted);font-size:.85rem">Below 5 CPS — Average</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><div style="width:10px;height:10px;border-radius:50%;background:#22c55e"></div><span style="color:var(--muted);font-size:.85rem">5–8 CPS — Good</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><div style="width:10px;height:10px;border-radius:50%;background:#eab308"></div><span style="color:var(--muted);font-size:.85rem">8–12 CPS — Fast</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><div style="width:10px;height:10px;border-radius:50%;background:#f97316"></div><span style="color:var(--muted);font-size:.85rem">12–16 CPS — Very Fast</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><div style="width:10px;height:10px;border-radius:50%;background:#8b5cf6"></div><span style="color:var(--muted);font-size:.85rem">16+ CPS — Elite</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+let dur=5,clicks=0,running=false,interval=null,endTime=0,peakCps=0,history=[];
+const best=()=>parseFloat(localStorage.getItem('tn_cps_best')||'0');
+
+function init(){
+  document.getElementById('bestCps').textContent=best()||'—';
+}
+
+function setDur(d,btn){
+  document.querySelectorAll('.dur-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  dur=d;reset();
+}
+
+function handleClick(){
+  if(!running){
+    running=true;clicks=0;peakCps=0;
+    endTime=Date.now()+dur*1000;
+    document.getElementById('arena').classList.add('active');
+    document.getElementById('arenaText').textContent='CLICKING!';
+    document.getElementById('arenaSub').textContent='Keep going!';
+    interval=setInterval(tick,50);
+  }
+  if(running){
+    clicks++;
+    document.getElementById('sClicks').textContent=clicks;
+    const elapsed=(dur*1000-(endTime-Date.now()))/1000;
+    const cps=elapsed>0?(clicks/elapsed):0;
+    if(cps>peakCps)peakCps=cps;
+    document.getElementById('sCps').textContent=cps.toFixed(1);
+    document.getElementById('sMax').textContent=peakCps.toFixed(1);
+  }
+}
+
+function tick(){
+  const left=Math.max(0,(endTime-Date.now())/1000);
+  document.getElementById('sTime').textContent=left.toFixed(1);
+  if(left<=0){finish();}
+}
+
+function finish(){
+  clearInterval(interval);running=false;
+  const elapsed=dur;
+  const cps=(clicks/elapsed);
+  document.getElementById('sCps').textContent=cps.toFixed(1);
+  document.getElementById('sTime').textContent='0.0';
+  const arena=document.getElementById('arena');
+  arena.classList.remove('active');arena.classList.add('done');
+  document.getElementById('arenaText').textContent=`${cps.toFixed(1)} CPS — ${getRating(cps)}`;
+  document.getElementById('arenaSub').textContent='Click to try again';
+  const b=best();
+  if(cps>b){localStorage.setItem('tn_cps_best',cps.toFixed(2));document.getElementById('bestCps').textContent=cps.toFixed(1);}
+  history.unshift({cps:cps.toFixed(1),clicks,dur});
+  if(history.length>10)history.pop();
+  renderHistory();
+  running=false;
+}
+
+function getRating(cps){
+  if(cps>=16)return'🏆 Elite!';
+  if(cps>=12)return'🔥 Very Fast!';
+  if(cps>=8) return'⚡ Fast!';
+  if(cps>=5) return'👍 Good';
+  return'📈 Keep practicing!';
+}
+
+function reset(){
+  clearInterval(interval);running=false;clicks=0;peakCps=0;
+  document.getElementById('sCps').textContent='0.0';
+  document.getElementById('sClicks').textContent='0';
+  document.getElementById('sTime').textContent=dur+'.0';
+  document.getElementById('sMax').textContent='0.0';
+  const arena=document.getElementById('arena');
+  arena.classList.remove('active','done');
+  document.getElementById('arenaText').textContent='Click here to start!';
+  document.getElementById('arenaSub').textContent='Click as fast as you can';
+}
+
+function renderHistory(){
+  const el=document.getElementById('history');
+  if(!history.length){el.innerHTML='<span style="color:var(--muted);font-size:.82rem">No sessions yet</span>';return;}
+  el.innerHTML=history.map(h=>`<span class="hist-pill">${h.cps} CPS (${h.clicks} clicks/${h.dur}s)</span>`).join('');
+}
+
+init();
+</script>
+</body>
+</html>

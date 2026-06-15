@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>QR Code Generator — ToolNova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div></div>
+<div class="tool-page">
+  <nav class="topbar">
+    <a class="topbar-logo" href="index.html"><span>✦</span> ToolNova</a>
+    <span class="topbar-sep">/</span>
+    <span class="topbar-tool">QR Code Generator</span>
+    <a class="topbar-back" href="index.html">← All Tools</a>
+  </nav>
+  <div class="tool-content">
+    <div class="tool-hero">
+      <div class="tool-hero-icon">📱</div>
+      <div><div class="tool-hero-title">QR Code Generator</div><div class="tool-hero-desc">Create QR codes for any text or URL instantly</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Content</div>
+      <div class="fg">
+        <label class="lbl">Text or URL</label>
+        <textarea id="qrText" rows="3" placeholder="https://example.com or any text…">https://toolnova.app</textarea>
+      </div>
+      <div class="row">
+        <div class="fg">
+          <label class="lbl">Size</label>
+          <select id="qrSize">
+            <option value="150">150 px</option>
+            <option value="200" selected>200 px</option>
+            <option value="300">300 px</option>
+            <option value="400">400 px</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="lbl">Error correction</label>
+          <select id="qrEcc">
+            <option value="L">Low (L)</option>
+            <option value="M" selected>Medium (M)</option>
+            <option value="Q">Quartile (Q)</option>
+            <option value="H">High (H)</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="lbl">Dark color</label>
+          <input type="color" id="qrDark" value="#000000"/>
+        </div>
+        <div class="fg">
+          <label class="lbl">Light color</label>
+          <input type="color" id="qrLight" value="#ffffff"/>
+        </div>
+      </div>
+      <div class="btns">
+        <button class="btn btn-p" onclick="generateQR()">Generate QR Code</button>
+      </div>
+    </div>
+
+    <div class="card" id="qrResult" style="display:none">
+      <div class="card-title">Your QR Code</div>
+      <div style="display:flex;justify-content:center;padding:16px 0" id="qrOutput"></div>
+      <div class="btns" id="qrActions"></div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+
+function generateQR() {
+  const text  = document.getElementById('qrText').value.trim();
+  const size  = document.getElementById('qrSize').value;
+  const ecc   = document.getElementById('qrEcc').value;
+  const dark  = document.getElementById('qrDark').value.replace('#','');
+  const light = document.getElementById('qrLight').value.replace('#','');
+
+  if (!text) { toast('Enter some text or URL first'); return; }
+
+  const url = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&ecc=${ecc}&color=${dark}&bgcolor=${light}&margin=2&data=${encodeURIComponent(text)}`;
+
+  document.getElementById('qrResult').style.display = 'block';
+  document.getElementById('qrOutput').innerHTML = `
+    <div style="text-align:center">
+      <div style="margin-bottom:12px;color:var(--muted);font-size:.82rem">Loading…</div>
+      <img src="${url}" width="${size}" height="${size}" alt="QR Code"
+        style="border-radius:10px;border:6px solid white;background:#fff;display:block"
+        onload="this.previousElementSibling.textContent='Scan with any camera app'"
+        onerror="this.parentElement.innerHTML='<div class=out err>Failed to generate — check your internet connection</div>'"
+        id="qrImg"
+      />
+    </div>`;
+
+  document.getElementById('qrActions').innerHTML = `
+    <a class="btn btn-p" href="${url}" download="qrcode.png" target="_blank">⬇ Download PNG</a>
+    <button class="copy-btn" onclick="copyQRUrl()">📋 Copy image URL</button>
+  `;
+}
+
+function copyQRUrl() {
+  const img = document.getElementById('qrImg');
+  if (img) navigator.clipboard.writeText(img.src).then(() => toast('Image URL copied!'));
+}
+
+generateQR();
+</script>
+</body>
+</html>

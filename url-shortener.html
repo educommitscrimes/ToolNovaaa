@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>URL Shortener — ToolNova</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div></div>
+<div class="tool-page">
+  <nav class="topbar">
+    <a class="topbar-logo" href="index.html"><span>✦</span> ToolNova</a>
+    <span class="topbar-sep">/</span>
+    <span class="topbar-tool">URL Shortener</span>
+    <a class="topbar-back" href="index.html">← All Tools</a>
+  </nav>
+  <div class="tool-content">
+    <div class="tool-hero">
+      <div class="tool-hero-icon">🔗</div>
+      <div><div class="tool-hero-title">URL Shortener</div><div class="tool-hero-desc">Shorten long URLs into compact, shareable links</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Shorten a URL</div>
+      <div class="fg">
+        <label class="lbl">Long URL</label>
+        <input type="url" id="urlInput" placeholder="https://very-long-url.com/with/lots/of/path?and=params"/>
+      </div>
+      <div class="fg">
+        <label class="lbl">Custom alias (optional)</label>
+        <input type="text" id="aliasInput" placeholder="my-link" maxlength="20"/>
+      </div>
+      <div class="btns">
+        <button class="btn btn-p" onclick="shorten()">Shorten URL</button>
+        <button class="btn btn-s" onclick="clearForm()">Clear</button>
+      </div>
+      <div id="result" style="margin-top:14px"></div>
+    </div>
+
+    <div class="card" id="historyCard">
+      <div class="card-title">Recent links</div>
+      <div id="history"></div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script>
+const STORE = 'tn_urls';
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+function copy(text){navigator.clipboard.writeText(text).then(()=>toast('Copied!'));}
+function getLinks(){return JSON.parse(localStorage.getItem(STORE)||'{}');}
+function saveLinks(d){localStorage.setItem(STORE,JSON.stringify(d));}
+function genCode(){const c='abcdefghijklmnopqrstuvwxyz0123456789';const a=new Uint32Array(5);crypto.getRandomValues(a);return Array.from(a).map(v=>c[v%c.length]).join('');}
+
+function shorten(){
+  let url=document.getElementById('urlInput').value.trim();
+  const alias=document.getElementById('aliasInput').value.trim().toLowerCase().replace(/\s+/g,'-');
+  const res=document.getElementById('result');
+  if(!url){toast('Enter a URL first');return;}
+  try{ new URL(url.startsWith('http')?url:'https://'+url); if(!url.startsWith('http'))url='https://'+url; }
+  catch(e){res.innerHTML='<div class="out err">Invalid URL — please include https://</div>';return;}
+  const links=getLinks();
+  const code=alias||genCode();
+  if(alias&&links[alias]){res.innerHTML='<div class="out err">Alias already taken — try another</div>';return;}
+  links[code]={url,created:Date.now()};
+  saveLinks(links);
+  const short=`${location.origin}${location.pathname.replace('tools/url-shortener.html','')}#${code}`;
+  res.innerHTML=`
+    <div class="out ok" style="font-size:1rem">${short}</div>
+    <div class="btns"><button class="copy-btn" onclick="copy('${short}')">📋 Copy link</button></div>
+  `;
+  document.getElementById('urlInput').value='';
+  document.getElementById('aliasInput').value='';
+  renderHistory();
+}
+
+function clearForm(){document.getElementById('urlInput').value='';document.getElementById('aliasInput').value='';document.getElementById('result').innerHTML='';}
+
+function renderHistory(){
+  const links=getLinks();
+  const entries=Object.entries(links).sort((a,b)=>b[1].created-a[1].created).slice(0,10);
+  const h=document.getElementById('history');
+  if(!entries.length){h.innerHTML='<p style="color:var(--muted);font-size:.85rem">No links yet.</p>';return;}
+  h.innerHTML=entries.map(([code,data])=>{
+    const short=`${location.origin}${location.pathname.replace('tools/url-shortener.html','')}#${code}`;
+    return `<div style="background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="flex:1;min-width:0">
+        <div style="color:#c4b5fd;font-family:var(--mono);font-size:.78rem;margin-bottom:2px">${short}</div>
+        <div style="color:var(--muted);font-size:.73rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${data.url}</div>
+      </div>
+      <button class="copy-btn" style="flex-shrink:0" onclick="copy('${short}')">📋 Copy</button>
+    </div>`;
+  }).join('');
+}
+renderHistory();
+</script>
+</body>
+</html>
